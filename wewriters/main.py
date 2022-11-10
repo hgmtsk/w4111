@@ -95,84 +95,126 @@ def project():
 
 
     con = get_db() # gets the connection, need figure out the connection close
-
-    sql = "SELECT pid, U.uid, pname,username, description, P.addTime FROM Projects as P, Users as U WHERE U.uid = P.uid AND P.pid={}".format(pid) # query
-    
     cur = con.cursor() # get cursor for connection
 
-    cur.execute(sql) 
 
-    author = cur.fetchall()
+    sql = "SELECT pid, U.uid, pname,username, description, P.addTime FROM Projects as P, Users as U WHERE U.uid = P.uid AND P.pid=%s" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    author = {'pid': pid, 'uid': res['U.uid'], 'apname': res['pname'], 'ausername': res['username'], 'adescription': res['description'], 'aaddTime': res['P.addTime'].replace(microsecond=0)}
 
-    sql = "SELECT cname FROM projects, projectcategories, categories WHERE projects.pid={} AND projects.pid=projectcategories.pid AND projectcategories.cid=categories.cid".format(pid) # query
+    sql = "SELECT cname FROM projects, projectcategories, categories WHERE projects.pid=%s AND projects.pid=projectcategories.pid AND projectcategories.cid=categories.cid" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    categories = {'cname': res['cname']}
 
-    cur.execute(sql) 
+    sql = "SELECT bid, title, addtime FROM blocks WHERE pid=%s" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    blocks = {'bid': res['bid'], 'btitle': res['title'], 'baddtime': res['addtime']}
 
-    pcategories = cur.fetchall()
+    sql = "SELECT COUNT(*) AS blocks_count FROM blocks WHERE pid=%s" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    blocks_count = res['blocks_count']
 
-    sql = "SELECT bid, title, addtime FROM blocks WHERE pid={}".format(pid) # query
+    sql = "SELECT aid, title, addtime FROM announcements WHERE pid=%s" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    announcements = {'aid': res['aid'], 'atitle': ['title'], 'aaddtime': res['addtime']}
 
-    cur.execute(sql) 
+    sql = "SELECT COUNT(*) AS announcements_count FROM announcements WHERE pid=%s" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    announcements_count = res['announcements_count']
 
-    pblocks = cur.fetchall()
+    sql = "SELECT notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name, COUNT(rid) AS replies_count FROM notes, notetags, tags, replies, users WHERE notes.nid=notetags.nid AND notetags.tid=tags.tid AND users.uid=notes.uid AND notes.pid=%s GROUP BY notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    notes = {'nid': res['notes.nid'], 'ntitle': res['notes.title'], 'ausername': res['users.username'], 'nuid': res['notes.uid'], 'ntags': res['tags.name'], 'nreplies_count': res['replies_count']}
 
-    sql = "SELECT COUNT(*) AS blocks_count FROM blocks WHERE pid={}".format(pid) # query
-
-    cur.execute(sql) 
-
-    pblocks_count = cur.fetchall()
-
-    sql = "SELECT aid, title, addtime FROM announcements WHERE pid={}".format(pid) # query
-
-    cur.execute(sql) 
-
-    pannouncements = cur.fetchall()
-
-    sql = "SELECT COUNT(*) AS announcements_count FROM announcements WHERE pid={}".format(pid) # query
-
-    cur.execute(sql) 
-
-    pannouncements_count = cur.fetchall()
-
-    sql = "SELECT notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name, COUNT(rid) AS replies_count FROM notes, notetags, tags, replies, users WHERE notes.nid=notetags.nid AND notetags.tid=tags.tid AND users.uid=notes.uid AND notes.pid={} GROUP BY notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name".format(pid) # query
-
-    cur.execute(sql) 
-
-    pnotes = cur.fetchall()
-
-    sql = "SELECT COUNT(*) AS notes_count FROM notes WHERE pid={}".format(pid) # query
-
-    cur.execute(sql) 
-
-    notes_count = cur.fetchall()
-
-
-
-    project_pid = author['pid']
-    pname = author['pname']
-    author_uid = author['U.uid']
-    author_username = author['username']
-    pdescription = author['description']
-    addTime = author['P.addTime']
-
-
-    categories = pcategories['cname']
-    blocks = [] # {bid: xxx, title: yyy, addtime: vvv}
-    for pblock in pblocks:
-        block = [pblock['bid'],pblock['title'],pblock['addtime']]
-        blocks.append(block)
-    blocks_count = pblocks_count['blocks_count']
-    announcements = [] # {aid: xxx, title: yyy, addtime: ccc}
-    for pannouncement in pannouncements:
-        announcement = [pannouncement['aid'],pannouncement['title'],pannouncement['addtime']]
-        announcements.append(announcement)
-    announcements_count = pannouncements_count['announcements_count']
-    notes = [] # {nid: xxx, title: yyy, addtime: ccc, username: zzz, uid: ccc, tags: [x,y,z], replies_count}
-    for pnote in pnotes:
-        note = [pnote['notes.nid'],pnote['notes.title'],pnote['notes.addtime'],pnote['users.username'],pnote['notes.uid'],pnote['tags.name'],pnote['replies_count']]
-        notes.append(note)
-    notes_count = notes_count['notes_count']
+    sql = "SELECT COUNT(*) AS notes_count FROM notes WHERE pid=%s" # query
+    if cur.execute(sql, (pid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    notes_count = res['notes_count']
 
 
+    return render_template('project.html', title = "Project #" + ": "+str(project['ptitle']), hide = True, author = author, categories = categories, blocks = blocks, blocks_count = blocks_count, announcements = announcements, announcements_count = announcements_count, notes = notes, notes_count = notes_count)
 
-    return render_template('project.html', title = "random", messages = block)
+    
+@main.route('/announcements/')
+def announcements():
+
+    #later will be automatic:
+    aid = 5
+
+
+    con = get_db() # gets the connection, need figure out the connection close
+    cur = con.cursor() # get cursor for connection
+
+
+    sql = "SELECT aid, title, text, users.uid, username FROM announcements, users WHERE aid=%s AND announcements.uid=users.uid" # query
+    if cur.execute(sql, (aid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    announcements = {'aid': aid, 'atitle': res['title'], 'atext': res['text'], 'auid': res['users.uid'], 'ausername': res['username']}
+
+    return render_template('project.html', title = "Project #" + str(announcements['aid']) + ": "+str(announcements['atitle']), hide = True, announcements = announcements)
+    
+
+@main.route('/blocks/')
+def blocks():
+
+    #later will be automatic:
+    bid = 1
+
+
+    con = get_db() # gets the connection, need figure out the connection close
+    cur = con.cursor() # get cursor for connection
+
+
+    sql = "SELECT B.bid, B.title, B.text, U.uid, U.username, P.pid, P.pname FROM blocks AS B, users AS U, people AS P WHERE U.uid=P.uid AND P.pid=B.pid AND B.bid=%s" # query
+    if cur.execute(sql, (bid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    blocks = {'bid': bid, 'btitle': res['B.title'], 'auid': res['U.uid'], 'busername': res['B.username'], 'bpid': res['P.pid'], 'bpname': ['P.pname']}
+
+    return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
+
+@main.route('/userpage/')
+def userpage():
+
+    #later will be automatic:
+    uid = 1
+
+
+    con = get_db() # gets the connection, need figure out the connection close
+    cur = con.cursor() # get cursor for connection
+
+
+    sql = "P.pid, pname, description FROM projects AS P, users AS U WHERE P.uid=U.uid AND U.uid=%s" # query
+    if cur.execute(sql, (uid,)) != None:
+        # TODO: IMPORTANT HERE - need to return no record or something
+        pass
+    res = cur.fetchall()
+    created = {'bid': bid, 'btitle': res['B.title'], 'auid': res['U.uid'], 'busername': res['B.username'], 'bpid': res['P.pid'], 'bpname': ['P.pname']}
+
+    return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)

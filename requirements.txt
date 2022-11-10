@@ -3,3 +3,5 @@ python-dotenv
 sqlalchemy 
 flask-sqlalchemy
 psycopg2-binary
+flask-login
+werkzeug

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+    <form action=/register/ method=POST>
+
+        <p><input class="w3-input w3-padding-16" type="text" placeholder="Username" required name="username"></p>
+        <p><input class="w3-input w3-padding-16" type="email" placeholder="Email Address" required name="email"></p>
+        <p><input class="w3-input w3-padding-16" type="password" placeholder="Password" required name="password"></p>
+
+
+        <p>
+          <button class="w3-button w3-light-grey w3-padding-large" type="Sign In">
+            <i class="fa fa-user-plus"></i> Register
+          </button>
+        </p>
+        
+    </form>
+
+{% endblock %}

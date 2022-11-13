@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2><a href="/project/{{project['pid']}}">#{{project['pid']}}: {{project['pname']}}</a> </h2>
+
+{% if categories|length > 0 %}
+Categories: {% for category in categories %} <div class="w3-light-grey w3-padding-tiny w3-button"> {{category['cname']}}
+</div> {% endfor %}
+{% else %}No categories{% endif %}
+
+<p>
+<ul class="w3-ul w3-white">
+    <li class="w3-dark-grey w3-xlarge w3-padding-32">{{project['pname']}} </li>
+    <li class="w3-dark-grey w3-small w3-padding-16">Added by {{project['username']}} on
+        {{project['paddtime'].strftime('%B %d, %Y at %H:%M:%S')}} </li>
+    <li class="w3-padding-16">{{project['pdescription']}}</li>
+</ul>
+</p>
+
+<p>
+<ul class="w3-ul w3-white">
+
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('announcements')"> Announcements ({{acount}})
+    </li>
+    <div id="announcements" style="display:none">
+
+        {% for announcement in announcements %}
+        <li class="w3-padding-16 w3-small"><a href="/announcement/{{announcement['aid']}}">{{announcement['title']}}</a>
+            <div style="float:right">posted on {{announcement['addtime'].strftime('%B %d, %Y at %H:%M:%S')}}</div>
+        </li>
+        {% endfor %}
+    </div>
+</ul>
+</p>
+<p>
+<ul class="w3-ul w3-white">
+
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('blocks')"> Blocks ({{bcount}}) </li>
+    <div id="blocks" style="display:none">
+        {% for block in blocks %}
+        <li class="w3-padding-16 w3-small"><a href="/block/{{block['bid']}}">{{block['title']}}</a>
+            <div style="float:right">posted on {{block['addtime'].strftime('%B %d, %Y at %H:%M:%S')}}</div>
+        </li>
+        {% endfor %}
+    </div>
+</ul>
+</p>
+<p>
+<ul class="w3-ul w3-white">
+
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('notes')"> Notes ({{ncount}}) </li>
+    <div id="notes" style="display:none">
+        {% for note in notes %}
+        <li class="w3-padding-16 w3-small"><a href="/note/{{note['nid']}}">{{note['title']}}</a> {% if
+            note['tags']|length > 0 %} ( {% for tag in note['tags'] %}{{tag['tname']}} {% endfor %}){% endif %} <div
+                style="float:right">posted on {{note['naddtime'].strftime('%B %d, %Y at %H:%M:%S')}}</div>
+        </li>
+        {% endfor %}
+    </div>
+</ul>
+</p>
+
+
+{% endblock %}

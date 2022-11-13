@@ -10,4 +10,11 @@ function OnInput() {
 }
 
 
-document.getElementById("demo").innerHTML = "Hello JavaScript";
+function hideandshow(element) {
+  var T = document.getElementById(element),
+      displayValue = "";
+  if (T.style.display == "")
+      displayValue = "none";
+
+  T.style.display = displayValue;
+}

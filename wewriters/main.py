@@ -104,49 +104,48 @@ def project(pid=None):
     
     # doesn't work!
     
-    res = cur.fetchall()
-    author = {'pid': pid, 'uid': res['uid'], 'apname': res['pname'], 'username': res['username'], 'pdescription': res['pdescription'], 'paddTime': res['paddTime']}
+    res = cur.fetchone()
+    project = {'pid': pid, 'pname': res['pname'], 'uid': res['uid'], 'username': res['username'], 'pdescription':res['pdescription'], 'paddtime': res['paddtime']}
 
-    sql = "SELECT cname FROM projects, projectcategories, categories WHERE projects.pid=%s AND projects.pid=projectcategories.pid AND projectcategories.cid=categories.cid" # query
+    sql = "SELECT C.cname AS cname, C.cid AS cid FROM projects P, projectcategories PC, categories C WHERE P.pid=%s AND P.pid=PC.pid AND PC.cid=C.cid" # query
     cur.execute(sql, (pid,))
     res = cur.fetchall()
-    categories = {'cname': res['cname']}
+    categories = res
 
     sql = "SELECT bid, title, addtime FROM blocks WHERE pid=%s" # query
     cur.execute(sql, (pid,))
     res = cur.fetchall()
-    blocks = {'bid': res['bid'], 'btitle': res['title'], 'baddtime': res['addtime']}
+    blocks = res
 
-    sql = "SELECT COUNT(*) AS blocks_count FROM blocks WHERE pid=%s" # query
-    cur.execute(sql, (pid,))
-    res = cur.fetchall()
-    blocks_count = res['blocks_count']                                                      
+    bcount = len(blocks)                                                 
 
     sql = "SELECT aid, title, addtime FROM announcements WHERE pid=%s" # query
     cur.execute(sql, (pid,)) 
     res = cur.fetchall()
-    announcements = {'aid': res['aid'], 'atitle': ['title'], 'aaddtime': res['addtime']}
+    announcements = res
 
-    sql = "SELECT COUNT(*) AS announcements_count FROM announcements WHERE pid=%s" # query
+    acount = len(announcements)
+
+    sql = "SELECT N.nid AS nid, N.title AS title, N.addtime AS naddtime, U.username AS username, U.uid, COUNT(R.rid) AS rcount FROM notes N, replies R, users U WHERE U.uid=N.uid AND N.pid=%s GROUP BY N.nid, U.uid" # query
     cur.execute(sql, (pid,)) 
     res = cur.fetchall()
-    announcements_count = res['announcements_count']
+    notes = res
 
-    sql = "SELECT notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name, COUNT(rid) AS replies_count FROM notes, notetags, tags, replies, users WHERE notes.nid=notetags.nid AND notetags.tid=tags.tid AND users.uid=notes.uid AND notes.pid=%s GROUP BY notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name" # query
-    cur.execute(sql, (pid,)) 
-    res = cur.fetchall()
-    notes = {'nid': res['notes.nid'], 'ntitle': res['notes.title'], 'ausername': res['users.username'], 'nuid': res['notes.uid'], 'ntags': res['tags.name'], 'nreplies_count': res['replies_count']}
+    ncount = len(notes)
 
-    sql = "SELECT COUNT(*) AS notes_count FROM notes WHERE pid=%s" # query
-    cur.execute(sql, (pid,))
-    res = cur.fetchall()
-    notes_count = res['notes_count']
+    for note in notes:
+
+        sql = "SELECT T.tid AS tid, T.name AS tname FROM notetags as NT, tags as T WHERE NT.nid=%s AND NT.tid = T.tid" # query
+        cur.execute(sql, (note['nid'],))
+        res = cur.fetchall()
+        note['tags'] = res
+
     #except Exception as e:
     #    print(e)
     #    flash("Selected project doesn't exist. Redirected to all projects.", category="error")
     #    return redirect(url_for("main.projects"))
 
-    return render_template('project.html', title = "Project #" + ": "+str(project['ptitle']), hide = True, author = author, categories = categories, blocks = blocks, blocks_count = blocks_count, announcements = announcements, announcements_count = announcements_count, notes = notes, notes_count = notes_count)
+    return render_template('project.html', title = "Project #" + ": "+str(project['pname']), hide = True, project = project, categories = categories, blocks = blocks, bcount = bcount, announcements = announcements, acount = acount, notes = notes, ncount = ncount)
 
 @main.route('/announcement', strict_slashes=False)    
 @main.route('/announcement/<aid>')

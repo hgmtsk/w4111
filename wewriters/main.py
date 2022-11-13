@@ -157,22 +157,16 @@ def announcement(aid=None):
         return redirect(url_for("main.index"))
 
 
-    #later will be automatic:
-    aid = 5
-
-
     con = get_db() # gets the connection, need figure out the connection close
     cur = con.cursor() # get cursor for connection
 
 
-    sql = "SELECT aid, title, text, users.uid, username FROM announcements, users WHERE aid=%s AND announcements.uid=users.uid" # query
-    if cur.execute(sql, (aid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
-    res = cur.fetchall()
-    announcements = {'aid': aid, 'atitle': res['title'], 'atext': res['text'], 'auid': res['users.uid'], 'ausername': res['username']}
-
-    return render_template('project.html', title = "Project #" + str(announcements['aid']) + ": "+str(announcements['atitle']), hide = True, announcements = announcements)
+    sql = "SELECT A.aid AS aid, A.title AS atitle, A.text AS atext, A.addtime AS aaddtime, P.pid AS pid, P.pname AS pname, U.uid AS uid, U.username AS username FROM announcements AS A, projects AS P, users AS U WHERE A.aid=%s AND A.pid=P.pid AND P.uid=U.uid" # query
+    cur.execute(sql, (aid,))
+    res = cur.fetchone()
+    announcement = res
+    
+    return render_template('announcement.html', title = "Announcement #" + str(announcement['aid']) + ": "+str(announcement['atitle']), hide = True, announcement = announcement)
     
 @main.route('/block', strict_slashes=False)
 @main.route('/block/<bid>')
@@ -182,22 +176,17 @@ def block(bid=None):
         flash("No block selected, redirected to main page.", category="error")
         return redirect(url_for("main.index"))
 
-    #later will be automatic:
-    bid = 1
-
 
     con = get_db() # gets the connection, need figure out the connection close
     cur = con.cursor() # get cursor for connection
 
 
-    sql = "SELECT B.bid, B.title, B.text, U.uid, U.username, P.pid, P.pname FROM blocks AS B, users AS U, people AS P WHERE U.uid=P.uid AND P.pid=B.pid AND B.bid=%s" # query
-    if cur.execute(sql, (bid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
-    res = cur.fetchall()
-    blocks = {'bid': bid, 'btitle': res['B.title'], 'auid': res['U.uid'], 'busername': res['B.username'], 'bpid': res['P.pid'], 'bpname': ['P.pname']}
+    sql = "SELECT B.bid AS bid, B.title AS btitle, B.addtime AS baddtime, B.text AS btext, U.uid AS uid, U.username AS username, P.pid AS pid, P.pname AS pname FROM blocks AS B, users AS U, projects AS P WHERE U.uid=P.uid AND P.pid=B.pid AND B.bid=%s" # query
+    cur.execute(sql, (bid,))
+    res = cur.fetchone()
+    block = res
 
-    return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
+    return render_template('block.html', title = "Block #" + str(block['bid']) + ": "+str(block['btitle']), hide = True, block = block)
 
 @main.route('/user', strict_slashes=False)
 @main.route('/user/<uid>')
@@ -212,14 +201,27 @@ def user(uid=None):
     cur = con.cursor() # get cursor for connection
 
 
-    sql = "P.pid, pname, description FROM projects AS P, users AS U WHERE P.uid=U.uid AND U.uid=%s" # query
-    if cur.execute(sql, (uid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    sql = "SELECT uid, username, regtime FROM users WHERE uid=%s" # query
+    cur.execute(sql, (uid,))
+    res = cur.fetchone()
+    user = res
+    sql = "SELECT P.pid AS pid, P.pname AS pname, P.addtime AS paddtime FROM projects AS P WHERE P.uid=%s" # query
+    cur.execute(sql, (uid,))
     res = cur.fetchall()
-    created = {'bid': bid, 'btitle': res['B.title'], 'auid': res['U.uid'], 'busername': res['B.username'], 'bpid': res['P.pid'], 'bpname': ['P.pname']}
-
-    return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
+    projects = res
+    projects_length = len(projects)
+    sql = "SELECT P.pid AS pid, P.pname AS pname, P.addtime AS paddtime FROM projects AS P, projectfollows AS PF WHERE P.pid=PF.pid AND PF.uid=%s" # query
+    cur.execute(sql, (uid,))
+    res = cur.fetchall()
+    followed = res
+    followed_length = len(followed)
+    sql = "SELECT P.pid AS pid, P.pname AS pname, N.nid AS nid, N.title AS ntitle, N.addtime AS naddtime FROM projects AS P, notes AS N WHERE P.pid=N.pid AND N.uid=%s" # query
+    cur.execute(sql, (uid,))
+    res = cur.fetchall()
+    notes = res
+    notes_length = len(notes)
+    
+    return render_template('user.html', title = "User #" + str(user['uid']) + ": "+str(user['username']), hide = True, user=user, projects=projects, projects_length=projects_length, followed=followed, followed_length=followed_length, notes=notes, notes_length=notes_length)
 
 
 @main.route('/users/')

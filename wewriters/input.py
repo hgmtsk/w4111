@@ -1,10 +1,11 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from flask_login import current_user
+from flask_login import current_user, login_required
 from wewriters.db import get_db
 
 input = Blueprint('input', __name__)
 
 @input.route('/add/project/', methods = ['POST', 'GET'])
+@login_required
 def addProject():
 
     con = get_db()
@@ -21,8 +22,7 @@ def addProject():
     if request.method == 'POST':
         pname = request.form.get('Name')
         category = request.form.get('Category')
-        description = request.form.get('Description')
-        
+        description = request.form.get('Description')        
         
         sql = "INSERT INTO projects (pname, description, uid) VALUES (%s, %s, %s) RETURNING pid"
 
@@ -56,6 +56,7 @@ def addProject():
     return render_template('add-project.html', title = "Add Project", categories = categories)
 
 @input.route('/add/block/')
+@login_required
 def addBlock():
 
     if request.method == 'POST':
@@ -83,6 +84,7 @@ def addBlock():
 
 
 @input.route('/add/announcement/')
+@login_required
 def addAnnouncement():
 
     if request.method == 'POST':
@@ -110,6 +112,7 @@ def addAnnouncement():
 
 
 @input.route('/add/note/')
+@login_required
 def addNote():
 
     if request.method == 'POST':
@@ -137,6 +140,7 @@ def addNote():
 
 
 @input.route('/add/tag/', methods = ['POST', 'GET'])
+@login_required
 def addTag():
 
     if request.method == 'POST':
@@ -161,6 +165,7 @@ def addTag():
 
 
 @input.route('/add/reply/')
+@login_required
 def addReply():
 
     if request.method == 'POST':
@@ -186,6 +191,7 @@ def addReply():
     return render_template('add-reply.html')
 
 @input.route('/add/category/', methods = ['POST', 'GET'])
+@login_required
 def addCategory():
 
     if request.method == 'POST':

@@ -1,6 +1,6 @@
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 
 from wewriters.db import get_db
 
@@ -22,7 +22,8 @@ def register_post():
 
     print(email,username,password)
 
-    
+    # TODO: error check (rando + user exists)
+
     con = get_db()
     cur = con.cursor()
 
@@ -40,7 +41,9 @@ def register_post():
     
     login_user(User(str(uid)))
 
-    return "yay"
+    flash("Registration successful. Welcome, {}!".format(username), category="message")
+
+    return redirect(url_for("main.index"))
 
 
 @auth.route('/login/')
@@ -56,7 +59,7 @@ def login_post():
     con = get_db()
     cur = con.cursor()
 
-    sql = "SELECT U.uid, A.hpwd FROM Users AS U, Auth AS A WHERE U.email = %s AND U.uid = A.uid"
+    sql = "SELECT U.uid AS uid, U.username AS username, A.hpwd AS hpwd FROM Users AS U, Auth AS A WHERE U.email = %s AND U.uid = A.uid"
 
     cur.execute(sql,(email,))
     res = cur.fetchone()
@@ -65,9 +68,13 @@ def login_post():
 
         login_user(User(str(res['uid'])))
 
-        return current_user.username
+        flash("Registration successful. Welcome, {}!".format(res['username']), category="message")
 
-    return "nppp"
+        return redirect(url_for("main.index"))
+
+    flash("Login unsuccessful. Wrong email or password. Try again.", category="error")
+
+    return render_template("login.html", title = "Login")
 
 @auth.route('/logout/')
 @login_required

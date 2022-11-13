@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for, flash
 
 from wewriters.db import get_db
 
@@ -22,18 +22,15 @@ def index():
 
 
 
-
-
-
-
-    return render_template('feed.html', title = 'Main Page', messages = project)
+    return render_template('feed.html', title = 'We, Writers', messages = project)
 
 
 @main.route('/note',  strict_slashes=False)
 @main.route('/note/<nid>')
 def note(nid=None):
     if nid == None:
-        return 'no selected note'
+        flash("No note selected, redirected to main page.", category="error")
+        return redirect(url_for("main.index"))
 
     pid = 0
     uid = 0
@@ -43,11 +40,13 @@ def note(nid=None):
 
     # get note info
     sql = "SELECT pid, title, text, addtime, uid FROM notes WHERE nid = %s"
-    if cur.execute(sql, (nid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something, redo try catch!!!!
-        pass
-    res = cur.fetchone()
-    note = {'nid': nid, 'ntitle': res['title'], 'ntext': res['text'], 'naddtime': res['addtime'].replace(microsecond=0)}
+    try:
+        cur.execute(sql, (nid,))
+        res = cur.fetchone()
+        note = {'nid': nid, 'ntitle': res['title'], 'ntext': res['text'], 'naddtime': res['addtime'].replace(microsecond=0)}
+    except: 
+        flash("Selected note doesn't exist. Redirected to main page.", category="error")
+        return redirect(url_for("main.index"))
 
     # extract ids
     uid = res['uid']
@@ -87,11 +86,12 @@ def note(nid=None):
 
     return render_template('note.html', title = "Note #" + str(note['nid']) + ": "+str(note['ntitle']), hide = True, note = note, user = user, project = project, replies = replies)
 
-@main.route('/project/')
-def project():
+@main.route('/project', strict_slashes=False)
+@main.route('/project/<pid>')
+def project(pid=None):
 
-    #later will be automatic:
-    pid = 1
+    if pid == None:
+        flash("No project selected, redirected to all projects.", category="error")
 
 
     con = get_db() # gets the connection, need figure out the connection close

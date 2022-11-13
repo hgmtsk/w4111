@@ -4,6 +4,7 @@ from wewriters.db import get_db
 
 main = Blueprint('main', __name__)
 
+
 @main.route('/')
 def index():
 

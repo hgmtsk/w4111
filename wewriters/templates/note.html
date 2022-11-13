@@ -10,7 +10,7 @@ Tags: {% for tag in note['tags'] %} {{tag['tname']}} {% endfor %}
 <p>
     <ul class="w3-ul w3-white">
         <li class="w3-dark-grey w3-xlarge w3-padding-32">{{note['ntitle']}} </li>
-        <li class="w3-dark-grey w3-small w3-padding-16">Posted by {{user['uname']}} at {{note['naddtime']}} </li>
+        <li class="w3-dark-grey w3-small w3-padding-16">Posted by {{user['uname']}} on {{note['naddtime'].strftime('%B %d, %Y at %H:%M:%S')}} </li>
         <li class="w3-padding-16">{{note['ntext']}}</li>
     </ul>
 </p>
@@ -18,7 +18,7 @@ Tags: {% for tag in note['tags'] %} {{tag['tname']}} {% endfor %}
 {% for reply in replies %}
     <p>
         <ul class="w3-ul w3-white">
-            <li class="w3-dark-grey w3-small w3-padding-16">Posted by {{reply['runame']}} at {{reply['raddtime']}} </li>
+            <li class="w3-dark-grey w3-small w3-padding-16">Posted by {{reply['runame']}} on {{reply['raddtime'].strftime('%B %d, %Y at %H:%M:%S')}} </li>
             <li class="w3-padding-16">{{reply['rtext']}}</li>
         </ul>
 

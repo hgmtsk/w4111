@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 
 from wewriters.db import get_db
 
@@ -43,7 +43,7 @@ def note(nid=None):
     try:
         cur.execute(sql, (nid,))
         res = cur.fetchone()
-        note = {'nid': nid, 'ntitle': res['title'], 'ntext': res['text'], 'naddtime': res['addtime'].replace(microsecond=0)}
+        note = {'nid': nid, 'ntitle': res['title'], 'ntext': res['text'], 'naddtime': res['addtime']}
     except: 
         flash("Selected note doesn't exist. Redirected to main page.", category="error")
         return redirect(url_for("main.index"))
@@ -105,7 +105,7 @@ def project(pid=None):
     # doesn't work!
     
     res = cur.fetchall()
-    author = {'pid': pid, 'uid': res['uid'], 'apname': res['pname'], 'username': res['username'], 'pdescription': res['pdescription'], 'paddTime': res['paddTime'].replace(microsecond=0)}
+    author = {'pid': pid, 'uid': res['uid'], 'apname': res['pname'], 'username': res['username'], 'pdescription': res['pdescription'], 'paddTime': res['paddTime']}
 
     sql = "SELECT cname FROM projects, projectcategories, categories WHERE projects.pid=%s AND projects.pid=projectcategories.pid AND projectcategories.cid=categories.cid" # query
     cur.execute(sql, (pid,))
@@ -225,8 +225,37 @@ def user(uid=None):
 @main.route('/users/')
 def users():
 
+    con = get_db()
+    cur = con.cursor()
 
-    return render_template('users.html')
+    perpage = 10
+    offset = 0
+
+    p = request.args.get("p")
+
+    if p != None:
+        offset = p 
+
+    sql = "SELECT count(*) FROM Users"
+    cur.execute(sql)
+
+    res = cur.fetchone()
+
+    ucount = res['count']
+    ucount10 = int((ucount-1)/10) + 1
+
+    pages = []
+
+    for i in range(ucount10):
+        pages.append(i*10)
+
+    sql = "SELECT * FROM Users ORDER BY regtime DESC LIMIT 10 OFFSET %s"
+    cur.execute(sql, (p,))
+    res = cur.fetchall()
+
+
+
+    return render_template('users.html', title = 'Users', pages = pages, users = res)
 
 @main.route('/projects/')
 def projects():

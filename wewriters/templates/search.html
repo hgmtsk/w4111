@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+    <form action=/search/project method=GET>
+
+        <p><input class="w3-input w3-padding-16" type="text" placeholder="Project Name" required name="search"></p>
+
+
+
+        <p>
+          <button class="w3-button w3-light-grey w3-padding-large" type="Sign In">
+            <i class="fa fa-magnifying-glass"></i> Search
+          </button>
+        </p>
+        
+    </form>
+
+    {% for each in res %}
+    <ul class="w3-ul w3-white w3-opacity w3-hover-opacity-off">
+        <li class="w3-dark-grey w3-xlarge w3-padding-32"><a href='/project/{{res['pid']}}'> #{{each['pid']}} {{each['pname']}}</a> Posted on {{each['addtime'].strftime('%B %d, %Y at %H:%M:%S')}}</a> 
+    </ul>
+    {% endfor %}
+
+{% endblock %}

@@ -3,7 +3,20 @@
 {% block content %}
 
 
-<form action="/projects/" method=GET>
+{% for user in users %}
+
+<p>
+
+    <ul class="w3-ul w3-white w3-opacity w3-hover-opacity-off">
+        <li class="w3-dark-grey w3-xlarge w3-padding-32"><a href='/user/{{user['uid']}}'> #{{user['uid']}} {{user['username']}}</a> Regsitred since {{user['regtime'].strftime('%B %d, %Y')}}</a> 
+    </ul>
+
+</p>
+
+{% endfor %}
+
+
+<form action="/users/" method=GET>
     <div class="w3-center">
     <div class="buttons">
         {% for page in pages %}

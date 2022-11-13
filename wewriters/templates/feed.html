@@ -6,7 +6,7 @@ test
     <p>
 
         <ul class="w3-ul w3-white w3-opacity w3-hover-opacity-off">
-            <li class="w3-dark-grey w3-xlarge w3-padding-32">#{{message['pid']}} {{message['pname']}} Posted by {{message['username']}}(#{{message['uid']}}) at {{message['addtime'].replace(microsecond=0)}}</a> 
+            <li class="w3-dark-grey w3-xlarge w3-padding-32">#{{message['pid']}} {{message['pname']}} Posted by {{message['username']}}(#{{message['uid']}}) on {{message['addtime'].strftime('%B %d, %Y at %H:%M:%S')}}</a> 
             <li class="w3-padding-16">{{message['description']}}</li>
         </ul>
 

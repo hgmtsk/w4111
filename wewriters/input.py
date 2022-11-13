@@ -1,8 +1,29 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import current_user, login_required
 from wewriters.db import get_db
+from wewriters.functions import listProjects
 
 input = Blueprint('input', __name__)
+
+@input.route('/search/project/')
+def searchProject():
+    term = request.args.get("search")
+
+    res = []
+
+    if term != None:
+        con = get_db()
+        cur = con.cursor()
+
+        sql = "SELECT * FROM Projects WHERE pname LIKE %(like)s ESCAPE '=' ORDER BY addtime LIMIT %(limit)s OFFSET %(offset)s"
+
+        term = term.replace('=', '==').replace('%', '=%').replace('_', '=_')
+
+        cur.execute(sql, dict(like='%'+term+'%', limit=10, offset=0))
+        res = cur.fetchall()
+        print(cur.query)
+
+    return render_template('search.html', res = res)
 
 @input.route('/add/project/', methods = ['POST', 'GET'])
 @login_required

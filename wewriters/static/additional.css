@@ -8,3 +8,18 @@ textarea {
     border-bottom: 1px solid #ccc;
     background-color: #f8f8f8;
 }
+
+.buttons {
+    margin: 0 auto;
+    display: inline;
+   }
+
+.button-width {
+    width: 80px;
+
+    text-align: center;}
+
+.w3-padding-tiny{padding:3px 6px!important; margin: 3px;}
+
+
+    

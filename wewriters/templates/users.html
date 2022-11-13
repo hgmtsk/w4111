@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<form action="/projects/" method=GET>
+    <div class="w3-center">
+    <div class="buttons">
+        {% for page in pages %}
+
+
+
+        <button class="w3-button w3-light-grey w3-padding-large button-width" type="submit" , name="p" , value="{{page}}">
+            {{page}}
+        </button>
+
+
+        {% endfor %}
+    </div>
+</div>
+</form>
+
+{% endblock %}

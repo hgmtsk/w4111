@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+
+<form action="/add/project/" method=POST>
+  <p><input class="w3-input w3-padding-16" type="text" placeholder="Project Name" required name="Name"></p>
+
+  <div class="buttons" style="line-height: 3"> {% for category in categories %} <input type="checkbox" id="{{category['cid']}}" name="{{category['cid']}}">
+    <label class="w3-button w3-light-grey w3-padding-tiny" for="{{category['cid']}}">{{category['cname']}}</label>{%
+    endfor %}
+  </div>
+</br>
+  <a href="/add/category/">Add a new category!</a>
+  <p><textarea type="text" placeholder="Description" required name="Description"></textarea></p>
+
+
+
+  <p>
+    <button class="w3-button w3-light-grey w3-padding-large" type="submit">
+      <i class="fa fa-paper-plane"></i> Add Project
+    </button>
+  </p>
+</form>
+
+{% endblock %}

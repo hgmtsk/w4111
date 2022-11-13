@@ -23,6 +23,9 @@ def create_app():
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
 
+    from .db import close_db
+    app.teardown_appcontext(close_db)
+
     from .user import User
     @login_manager.user_loader
     def load_user(uid):

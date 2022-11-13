@@ -44,7 +44,7 @@ def note(nid=None):
     # get note info
     sql = "SELECT pid, title, text, addtime, uid FROM notes WHERE nid = %s"
     if cur.execute(sql, (nid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
+        # TODO: IMPORTANT HERE - need to return no record or something, redo try catch!!!!
         pass
     res = cur.fetchone()
     note = {'nid': nid, 'ntitle': res['title'], 'ntext': res['text'], 'naddtime': res['addtime'].replace(microsecond=0)}
@@ -179,8 +179,8 @@ def announcements():
     return render_template('project.html', title = "Project #" + str(announcements['aid']) + ": "+str(announcements['atitle']), hide = True, announcements = announcements)
     
 
-@main.route('/blocks/')
-def blocks():
+@main.route('/block/')
+def block():
 
     #later will be automatic:
     bid = 1
@@ -199,8 +199,8 @@ def blocks():
 
     return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
 
-@main.route('/userpage/')
-def userpage():
+@main.route('/user/')
+def user():
 
     #later will be automatic:
     uid = 1
@@ -218,3 +218,26 @@ def userpage():
     created = {'bid': bid, 'btitle': res['B.title'], 'auid': res['U.uid'], 'busername': res['B.username'], 'bpid': res['P.pid'], 'bpname': ['P.pname']}
 
     return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
+
+
+@main.route('/users/')
+def users():
+
+
+    return render_template('users.html')
+
+@main.route('/projects/')
+def projects():
+
+    con = get_db()
+    cur = con.cursor()
+
+    perpage = 10
+    offset = 0
+
+    # this doesnt work please fix (likely need left join). aim: get all projects (pid, pname, paddtime), corresponding user (uid, username), and count for blocks, announcements, and notes for each project (limit by perpage and offset by offset)
+    sql = "SELECT P.pid AS pid, P.pname AS pname, P.addtime AS paddtime, U.uid, U.usernanme AS uname, count(N.nid) AS ncount, count(B.bid) as bcount, count(A.ais) as acount FROM projects P, users U, blocks B, announcements A, notes N WHERE P.uid = U.uid, P.pid = B.pid, P.pid = A.aid, P.pid = B.pid GROUP BY P.pid"
+
+    pages = [0,10,20,30]
+
+    return render_template('projects.html', pages = pages)

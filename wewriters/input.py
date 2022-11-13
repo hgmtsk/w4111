@@ -26,30 +26,33 @@ def addProject():
         
         sql = "INSERT INTO projects (pname, description, uid) VALUES (%s, %s, %s) RETURNING pid"
 
-        # TODO: error check!
-        cur.execute(sql, (pname, description, current_user.uid))
-        pid = cur.fetchone()['pid']
+        try:
+            cur.execute(sql, (pname, description, current_user.uid))
+            pid = cur.fetchone()['pid']
 
-        # extract categories
-        selected = []
-        for each in available:
-            if request.form.get(str(each)) == "on":
-                selected.append((each,pid))
+            # extract categories
+            selected = []
+            for each in available:
+                if request.form.get(str(each)) == "on":
+                    selected.append((each,pid))
 
-        # prepare for multiple inserts
-        args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
-                for i in selected)
+            # prepare for multiple inserts
+            args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
+                    for i in selected)
 
-        sql = "INSERT INTO projectcategories (cid, pid) VALUES "
-        # TODO: error check!
-        cur.execute(sql + args)
+            sql = "INSERT INTO projectcategories (cid, pid) VALUES "
+            cur.execute(sql + args)
 
-        con.commit()
+            con.commit()
+        except:
+            flash("There was a problem when adding your project. Please try agian.", category="error")
+            return redirect(url_for("input.addProject"))      
+        
         
         flash('Your project {} has been added!'.format(pname), category="message")
 
         # need to do all checks before proceeding!
-        return redirect(url_for('main.index'))   
+        return redirect(url_for('main.project', pid = pid))   
     
 
 

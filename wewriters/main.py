@@ -98,68 +98,64 @@ def project(pid=None):
     cur = con.cursor() # get cursor for connection
 
 
-    sql = "SELECT pid, U.uid, pname,username, description, P.addTime FROM Projects as P, Users as U WHERE U.uid = P.uid AND P.pid=%s" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    #try: later!!!
+    sql = "SELECT P.pid AS pid, U.uid AS uid, P.pname AS pname, U.username AS username, P.description AS pdescription, P.addTime AS paddtime FROM Projects as P, Users as U WHERE U.uid = P.uid AND P.pid=%s" # query
+    cur.execute(sql, (pid,))
+    
+    # doesn't work!
+    
     res = cur.fetchall()
-    author = {'pid': pid, 'uid': res['U.uid'], 'apname': res['pname'], 'ausername': res['username'], 'adescription': res['description'], 'aaddTime': res['P.addTime'].replace(microsecond=0)}
+    author = {'pid': pid, 'uid': res['uid'], 'apname': res['pname'], 'username': res['username'], 'pdescription': res['pdescription'], 'paddTime': res['paddTime'].replace(microsecond=0)}
 
     sql = "SELECT cname FROM projects, projectcategories, categories WHERE projects.pid=%s AND projects.pid=projectcategories.pid AND projectcategories.cid=categories.cid" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,))
     res = cur.fetchall()
     categories = {'cname': res['cname']}
 
     sql = "SELECT bid, title, addtime FROM blocks WHERE pid=%s" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,))
     res = cur.fetchall()
     blocks = {'bid': res['bid'], 'btitle': res['title'], 'baddtime': res['addtime']}
 
     sql = "SELECT COUNT(*) AS blocks_count FROM blocks WHERE pid=%s" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,))
     res = cur.fetchall()
-    blocks_count = res['blocks_count']
+    blocks_count = res['blocks_count']                                                      
 
     sql = "SELECT aid, title, addtime FROM announcements WHERE pid=%s" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,)) 
     res = cur.fetchall()
     announcements = {'aid': res['aid'], 'atitle': ['title'], 'aaddtime': res['addtime']}
 
     sql = "SELECT COUNT(*) AS announcements_count FROM announcements WHERE pid=%s" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,)) 
     res = cur.fetchall()
     announcements_count = res['announcements_count']
 
     sql = "SELECT notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name, COUNT(rid) AS replies_count FROM notes, notetags, tags, replies, users WHERE notes.nid=notetags.nid AND notetags.tid=tags.tid AND users.uid=notes.uid AND notes.pid=%s GROUP BY notes.nid, notes.title, notes.addtime, users.username, notes.uid, tags.name" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,)) 
     res = cur.fetchall()
     notes = {'nid': res['notes.nid'], 'ntitle': res['notes.title'], 'ausername': res['users.username'], 'nuid': res['notes.uid'], 'ntags': res['tags.name'], 'nreplies_count': res['replies_count']}
 
     sql = "SELECT COUNT(*) AS notes_count FROM notes WHERE pid=%s" # query
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
+    cur.execute(sql, (pid,))
     res = cur.fetchall()
     notes_count = res['notes_count']
-
+    #except Exception as e:
+    #    print(e)
+    #    flash("Selected project doesn't exist. Redirected to all projects.", category="error")
+    #    return redirect(url_for("main.projects"))
 
     return render_template('project.html', title = "Project #" + ": "+str(project['ptitle']), hide = True, author = author, categories = categories, blocks = blocks, blocks_count = blocks_count, announcements = announcements, announcements_count = announcements_count, notes = notes, notes_count = notes_count)
 
-    
-@main.route('/announcements/')
-def announcements():
+@main.route('/announcement', strict_slashes=False)    
+@main.route('/announcement/<aid>')
+def announcement(aid=None):
+
+    if aid == None:
+        flash("No announcement selected, redirected to main page.", category="error")
+        return redirect(url_for("main.index"))
+
 
     #later will be automatic:
     aid = 5
@@ -178,9 +174,13 @@ def announcements():
 
     return render_template('project.html', title = "Project #" + str(announcements['aid']) + ": "+str(announcements['atitle']), hide = True, announcements = announcements)
     
+@main.route('/block', strict_slashes=False)
+@main.route('/block/<bid>')
+def block(bid=None):
 
-@main.route('/block/')
-def block():
+    if bid == None:
+        flash("No block selected, redirected to main page.", category="error")
+        return redirect(url_for("main.index"))
 
     #later will be automatic:
     bid = 1
@@ -199,11 +199,13 @@ def block():
 
     return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
 
-@main.route('/user/')
-def user():
+@main.route('/user', strict_slashes=False)
+@main.route('/user/<uid>')
+def user(uid=None):
 
-    #later will be automatic:
-    uid = 1
+    if uid == None:
+        flash("No user selected, redirected to all users.", category="error")
+        return redirect(url_for("users.index"))
 
 
     con = get_db() # gets the connection, need figure out the connection close

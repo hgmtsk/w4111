@@ -182,22 +182,17 @@ def block(bid=None):
         flash("No block selected, redirected to main page.", category="error")
         return redirect(url_for("main.index"))
 
-    #later will be automatic:
-    bid = 1
-
 
     con = get_db() # gets the connection, need figure out the connection close
     cur = con.cursor() # get cursor for connection
 
 
-    sql = "SELECT B.bid, B.title, B.text, U.uid, U.username, P.pid, P.pname FROM blocks AS B, users AS U, people AS P WHERE U.uid=P.uid AND P.pid=B.pid AND B.bid=%s" # query
-    if cur.execute(sql, (bid,)) != None:
-        # TODO: IMPORTANT HERE - need to return no record or something
-        pass
-    res = cur.fetchall()
-    blocks = {'bid': bid, 'btitle': res['B.title'], 'auid': res['U.uid'], 'busername': res['B.username'], 'bpid': res['P.pid'], 'bpname': ['P.pname']}
+    sql = "SELECT B.bid AS bid, B.title AS btitle, B.text AS btext, U.uid AS uid, U.username AS username, P.pid AS pid, P.pname AS pname FROM blocks AS B, users AS U, people AS P WHERE U.uid=P.uid AND P.pid=B.pid AND B.bid=%s" # query
+    cur.execute(sql, (bid,))
+    res = cur.fetchone()
+    block = res
 
-    return render_template('project.html', title = "Project #" + str(blocks['bid']) + ": "+str(blocks['btitle']), hide = True, blocks = blocks)
+    return render_template('block.html', title = "Block #" + str(block['bid']) + ": "+str(block['btitle']), hide = True, block = block)
 
 @main.route('/user', strict_slashes=False)
 @main.route('/user/<uid>')

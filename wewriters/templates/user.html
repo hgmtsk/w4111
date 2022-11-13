@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2><a href="/user/{{user['uid']}}">#{{user['uid']}}: {{user['username']}}</a> </h2>
+
+Registered at {{user['regtime']}}
+
+<p>
+<ul class="w3-ul w3-white">
+
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('projects')"> Projects created ({{projects_length}})
+    </li>
+    <div id="projects" style="display:none">
+
+        {% for project in projects %}
+        <li class="w3-padding-16 w3-small"><a href="/project/{{project['pid']}}">#{{project['pid']}}: {{project['pname']}}</a>
+            <div style="float:right">posted on {{project['paddtime'].strftime('%B %d, %Y at %H:%M:%S')}}</div>
+        </li>
+        {% endfor %}
+    </div>
+</ul>
+</p>
+<p>
+<ul class="w3-ul w3-white">
+
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('followed')"> Projects followed ({{followed_length}}) </li>
+    <div id="followed" style="display:none">
+        {% for follow in followed %}
+        <li class="w3-padding-16 w3-small"><a href="/project/{{follow['pid']}}">#{{follow['pid']}}: {{follow['pname']}}</a>
+            <div style="float:right">posted on {{follow['paddtime'].strftime('%B %d, %Y at %H:%M:%S')}}</div>
+        </li>
+        {% endfor %}
+    </div>
+</ul>
+</p>
+<p>
+<ul class="w3-ul w3-white">
+
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('notes')"> Notes ({{notes_length}}) </li>
+    <div id="notes" style="display:none">
+        {% for note in notes %}
+        <li class="w3-padding-16 w3-small"><a href="/note/{{note['nid']}}">#{{note['nid']}}: {{note['ntitle']}}</a> <div
+                style="float:right">posted on {{note['naddtime'].strftime('%B %d, %Y at %H:%M:%S')}}</div>
+        </br><a href="/project/{{note['pid']}}">posted on #{{note['pid']}}: {{note['pname']}}</a>
+       
+        {% endfor %}
+    </div>
+</ul>
+</p>
+
+
+{% endblock %}

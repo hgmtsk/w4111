@@ -33,9 +33,11 @@ Categories: {% for category in categories %} <div class="w3-light-grey w3-paddin
 
     <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('announcements')"> Announcements ({{acount}})
         {% if (current_user.is_authenticated) and (current_user.id|int() == project['uid']|int()) %}
+
         <a href="/add/announcement/?pid={{project['pid']}}">
             <div class="w3-light-grey w3-button w3-padding-tiny" style="float:right; margin: 0px;"> <i
                     class="fa-solid fa-bullhorn"></i> Add announcement
+
             </div>
         </a>
         {% endif %}

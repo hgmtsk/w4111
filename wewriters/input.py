@@ -158,9 +158,12 @@ def addAnnouncement():
 
 @input.route('/add/note/', methods = ['POST', 'GET'])
 @login_required
-def addNote():
+def addNote(pid = None):
 
-    pid = request.args.get("pid")   
+    print("addnote pid: {}".format(pid))
+
+    if pid == None:
+        pid = request.args.get("pid")   
 
     if pid == None and request.method == 'GET':
         flash("Cannot add a note to an unknown project. Redirected to all projects.", category="error")
@@ -211,7 +214,7 @@ def addNote():
             flash("Note couldn't be added.", category="error")
             return redirect(url_for("main.projects"))
 
-    return render_template('add-note.html', pid = pid, tags = tags)
+    return render_template('add-note.html', pid = pid, tags = tags, title = "Add note to project #{}".format(pid))
 
 
 @input.route('/add/tag/', methods = ['POST', 'GET'])
@@ -226,6 +229,7 @@ def addTag():
         cur = con.cursor()
 
         tag = request.form.get('Tag')
+        pid = request.form.get("pid")
 
         sql = "INSERT INTO tags (name) VALUES (%s)"
 
@@ -233,15 +237,14 @@ def addTag():
             cur.execute(sql, (tag,))
             con.commit()
             flash("Tag {} successfully added!".format(tag), category="message")
-            sql = "SELECT T.name AS tname, T.tid AS tid, count(NT.nid) AS count FROM tags T LEFT JOIN notetags NT ON NT.tid = T.tid  GROUP BY T.tid ORDER BY count DESC"
-            cur.execute(sql)
-            tags = cur.fetchall()
-            return render_template('add-note.html', pid = pid, tags = tags)
+            print("add tag pid: {}".format(pid))
+            return redirect(url_for('input.addNote', pid=pid))
         except:
             flash("Tag {} couldn't be added. It probably already exists!".format(tag), category="error")
 
 
-    return render_template('add-tag.html', pid=pid)
+    return render_template('add-tag.html', pid = pid)
+
 
 
 @input.route('/add/reply/')

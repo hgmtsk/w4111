@@ -111,12 +111,30 @@ def addBlock():
 @login_required
 def addAnnouncement():
 
+    uid = current_user.id
+    pid = request.args.get("pid")   
+
+    if pid == None:
+        flash("Cannot add an announcmenet to an unknown project. Redirected to all projects.", category="error")
+        return redirect(url_for("main.projects"))
+
+    
+    con = get_db()
+    cur = con.cursor()
+
+    sql = "SELECT uid FROM Projects WHERE uid = %s AND pid = %s"
+    cur.execute(sql, (uid, pid))
+    if cur.fetchone() == None:
+        flash("You can only add announcements to your projects. Redirected to all projects.", category="error")
+        return redirect(url_for("main.projects"))
+    
+
+
     if request.method == 'POST':
 
         con = get_db()
         cur = con.cursor()
 
-        pid=1
 
         title = request.form.get('Title')
         text = request.form.get('Text')
@@ -135,32 +153,62 @@ def addAnnouncement():
     return render_template('add-announcement.html')
 
 
-@input.route('/add/note/')
+@input.route('/add/note/', methods = ['POST', 'GET'])
 @login_required
 def addNote():
 
-    if request.method == 'POST':
+    pid = request.args.get("pid")   
 
-        pid=1
+    if pid == None and request.method == 'GET':
+        flash("Cannot add a note to an unknown project. Redirected to all projects.", category="error")
+        return redirect(url_for("main.projects"))
 
-        con = get_db()
-        cur = con.cursor()
+    con = get_db()
+    cur = con.cursor()
+
+    sql = "SELECT T.name AS tname, T.tid AS tid, count(NT.nid) AS count FROM tags T LEFT JOIN notetags NT ON NT.tid = T.tid  GROUP BY T.tid ORDER BY count DESC"
+    cur.execute(sql)
+    tags = cur.fetchall()
+
+    available = []
+    for tag in tags:
+        available.append(tag['tid'])
+
+
+    if request.method == 'POST':      
 
         title = request.form.get('Title')
         text = request.form.get('Text')
+        pid = request.form.get('pid')
+        
 
-        sql = "INSERT INTO notes (title, text, pid, uid) VALUES (%s, %s, %s, %s)"
+        sql = "INSERT INTO notes (title, text, pid, uid) VALUES (%s, %s, %s, %s) RETURNING nid"
 
         try: 
             cur.execute(sql, (title, text, pid, current_user.uid,))
+            nid = cur.fetchone()['nid']
+
+            selected = []
+            for each in available:
+                if request.form.get(str(each)) == "on":
+                    selected.append((each,nid))
+
+                # prepare for multiple inserts
+            args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
+                    for i in selected)
+
+            sql = "INSERT INTO notetags (tid, nid) VALUES "
+
+            cur.execute(sql + args)   
+
             con.commit()
-            flash("Note {} successfully added!".format(title), category="message")
-            return redirect(url_for('input.addProject'))
+            flash("Note #{} successfully added!".format(nid), category="message")
+            return redirect(url_for('main.note', nid = nid))
         except:
-            flash("Note {} couldn't be added. It probably already exists!".format(title), category="error")
+            flash("Note couldn't be added.", category="error")
+            return redirect(url_for("main.projects"))
 
-
-    return render_template('add-note.html')
+    return render_template('add-note.html', pid = pid, tags = tags)
 
 
 @input.route('/add/tag/', methods = ['POST', 'GET'])

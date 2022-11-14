@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+
+<form action="/add/note/" method=POST>
+    <p><input class="w3-input w3-padding-16" type="text" placeholder="Note title" required name="Title"></p>
+    <div class="buttons"> {% for tag in tags %} <input type="checkbox" id="{{tag['tid']}}" name="{{tag['tid']}}">
+        <label class="w3-button w3-light-grey w3-padding-tiny" for="{{tag['tid']}}">{{tag['tname']}}</label>{%
+        endfor %}
+      </div>
+
+    <input type="hidden" id="pid" name="pid" value="{{pid}}">
+    <p><textarea type="text" placeholder="Note text" required name="Text"></textarea></p>
+
+
+
+
+
+    <p>
+        <button class="w3-button w3-light-grey w3-padding-large" type="submit">
+            <i class="fa fa-paper-plane"></i> Add Note
+        </button>
+    </p>
+</form>
+
+{% endblock %}

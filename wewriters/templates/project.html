@@ -75,7 +75,7 @@ Categories: {% for category in categories %} <div class="w3-light-grey w3-paddin
 <ul class="w3-ul w3-white">
 
     <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('notes')"> Notes ({{ncount}}) {% if
-        current_user.is_authenticated %} <a href="/add/note/?p={{project['pid']}}"><span
+        current_user.is_authenticated %} <a href="/add/note/?pid={{project['pid']}}"><span
                 class="w3-light-grey w3-button w3-padding-tiny" style="float:right; margin: 0px;"><i
                     class="fa-solid fa-note-sticky"></i> Add note
             </span></a>{% endif %} </li>

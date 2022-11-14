@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+
+<form action="/add/reply/" method=POST>
+
+
+    <input type="hidden" id="nid" name="nid" value="{{nid}}">
+    <p><textarea type="text" placeholder="Reply text" required name="Text"></textarea></p>
+
+
+
+
+
+    <p>
+        <button class="w3-button w3-light-grey w3-padding-large" type="submit">
+            <i class="fa fa-paper-plane"></i> Add Reply
+        </button>
+    </p>
+</form>
+
+{% endblock %}

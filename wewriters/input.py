@@ -160,8 +160,6 @@ def addAnnouncement():
 @login_required
 def addNote(pid = None):
 
-    print("addnote pid: {}".format(pid))
-
     if pid == None:
         pid = request.args.get("pid")   
 
@@ -237,7 +235,6 @@ def addTag():
             cur.execute(sql, (tag,))
             con.commit()
             flash("Tag {} successfully added!".format(tag), category="message")
-            print("add tag pid: {}".format(pid))
             return redirect(url_for('input.addNote', pid=pid))
         except:
             flash("Tag {} couldn't be added. It probably already exists!".format(tag), category="error")
@@ -247,31 +244,7 @@ def addTag():
 
 
 
-@input.route('/add/reply/')
-@login_required
-def addReply():
 
-    if request.method == 'POST':
-
-        con = get_db()
-        cur = con.cursor()
-
-        nid = 2
-
-        text = request.form.get('Text')
-
-        sql = "INSERT INTO replies (name) VALUES (%s, %s, %s)"
-
-        try: 
-            cur.execute(sql, (text, nid, current_user.uid,))
-            con.commit()
-            flash("Reply {} successfully added!".format(text), category="message")
-            return redirect(url_for('input.addProject'))
-        except:
-            flash("Reply {} couldn't be added. It probably already exists!".format(text), category="error")
-
-
-    return render_template('add-reply.html')
 
 @input.route('/add/category/', methods = ['POST', 'GET'])
 @login_required
@@ -296,3 +269,35 @@ def addCategory():
         
 
     return render_template('add-category.html')
+
+@input.route('/add/reply/', methods = ['POST', 'GET'])
+@login_required
+def addReply():
+
+    nid = request.args.get("nid")   
+
+    if nid == None and request.method == 'GET':
+        flash("Cannot add a reply to an unnown project. Redirected to all projects.", category="error")
+        return redirect(url_for("main.projects"))
+
+
+    if request.method == 'POST':
+
+        con = get_db()
+        cur = con.cursor()
+
+        text = request.form.get('Text')
+        nid = request.form.get('nid')
+
+        sql = "INSERT INTO replies (text, nid, uid) VALUES (%s, %s, %s)"
+
+        try: 
+            cur.execute(sql, (text, nid, current_user.uid,))
+            con.commit()
+            flash("Reply successfully added!", category="message")
+            return redirect(url_for('main.note', nid=nid))
+        except:
+            flash("Reply {} couldn't be added".format(text), category="error")
+    
+
+    return render_template('add-reply.html', title = "New reply to note #{}".format(nid), nid=nid)

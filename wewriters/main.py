@@ -69,33 +69,25 @@ def note(nid=None):
 
     # get tags
     sql = "SELECT NT.tid AS tid, T.name AS tname FROM notetags AS NT, tags AS T WHERE  NT.nid = %s AND NT.tid = T.tid"
-    if cur.execute(sql, (nid,)) != None:
-        # TODO: signifies error
-        pass
+    cur.execute(sql, (nid,))
     res = cur.fetchall()
     note['tags'] = res
 
     # get user info
     sql = "SELECT username FROM users WHERE uid = %s"
-    if cur.execute(sql, (uid,)) != None:
-        # TODO: signifies error
-        pass
+    cur.execute(sql, (uid,))
     res = cur.fetchone()
     user = {'uid': uid, 'uname': res['username']}
 
     # get project info
     sql = "SELECT pname FROM projects WHERE pid = %s"
-    if cur.execute(sql, (pid,)) != None:
-        # TODO: signifies error
-        pass
+    cur.execute(sql, (pid,))
     res = cur.fetchone()
     project = {'pid': pid, 'pname': res['pname']}
 
     # get replies info
-    sql = "SELECT R.rid AS rid, R.text AS rtext, R.addtime AS raddtime, U.uid AS ruid, U.username AS runame FROM replies AS R, users as U WHERE R.nid = %s AND R.uid = U.uid"
-    if cur.execute(sql, (nid,)) != None:
-        # TODO: signifies error
-        pass
+    sql = "SELECT R.rid AS rid, R.text AS rtext, R.addtime AS raddtime, U.uid AS ruid, U.username AS runame FROM replies AS R, users as U WHERE R.nid = %s AND R.uid = U.uid ORDER BY raddtime ASC"
+    cur.execute(sql, (nid,))
     res = cur.fetchall()
     replies = res
 

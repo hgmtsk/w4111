@@ -57,17 +57,17 @@ def addProject():
                 if request.form.get(str(each)) == "on":
                     selected.append((each,pid))
 
-            # prepare for multiple inserts
-            args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
-                    for i in selected)
-
-            sql = "INSERT INTO projectcategories (cid, pid) VALUES "
-            cur.execute(sql + args)
+            if len(selected)!=0:
+                # prepare for multiple inserts
+                args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
+                        for i in selected)
+                sql = "INSERT INTO projectcategories (cid, pid) VALUES "
+                cur.execute(sql + args)
 
             con.commit()
         except:
             flash("There was a problem when adding your project. Please try agian.", category="error")
-            return redirect(url_for("input.addProject"))      
+            return redirect(url_for("main.project", pid=pid))      
         
         
         flash('Your project {} has been added!'.format(pname), category="message")
@@ -79,78 +79,81 @@ def addProject():
 
     return render_template('add-project.html', title = "Add Project", categories = categories)
 
-@input.route('/add/block/')
+@input.route('/add/block/', methods = ['POST', 'GET'])
 @login_required
 def addBlock():
 
+    pid = request.args.get("pid")
+
+    if pid == None and request.method == 'GET':
+        flash("Cannot add a block to an unknown project. Redirected to all projects.", category="error")
+        return redirect(url_for("main.projects"))
+
+    con = get_db()
+    cur = con.cursor()
+
     if request.method == 'POST':
-
-        con = get_db()
-        cur = con.cursor()
-
-        pid=1
 
         title = request.form.get('Title')
         text = request.form.get('Text')
+        pid = request.form.get('pid')
 
-        sql = "INSERT INTO blocks (title, text, pid) VALUES (%s, %s,%s)"
+        sql = "INSERT INTO blocks (title, text, pid) VALUES (%s, %s,%s) RETURNING bid"
 
         try: 
             cur.execute(sql, (title, text, pid,))
+            bid = cur.fetchone()['bid']
             con.commit()
-            flash("Block {} successfully added!".format(title), category="message")
-            return redirect(url_for('input.project'))
+            flash("Block {} successfully added!".format(bid), category="message")
+            return redirect(url_for('main.block', bid=bid))
         except:
-            flash("Block {} couldn't be added. It probably already exists!".format(title), category="error")
+            flash("Block couldn't be added.", category="error")
 
 
-    return render_template('add-block.html')
+    return render_template('add-block.html', pid=pid)
 
 
-@input.route('/add/announcement/')
+@input.route('/add/announcement/', methods = ['POST', 'GET'])
 @login_required
 def addAnnouncement():
 
     uid = current_user.id
     pid = request.args.get("pid")   
 
-    if pid == None:
+    if pid == None and request.method == 'GET':
         flash("Cannot add an announcmenet to an unknown project. Redirected to all projects.", category="error")
         return redirect(url_for("main.projects"))
 
     
     con = get_db()
     cur = con.cursor()
-
-    sql = "SELECT uid FROM Projects WHERE uid = %s AND pid = %s"
-    cur.execute(sql, (uid, pid))
-    if cur.fetchone() == None:
-        flash("You can only add announcements to your projects. Redirected to all projects.", category="error")
-        return redirect(url_for("main.projects"))
     
-
 
     if request.method == 'POST':
 
-        con = get_db()
-        cur = con.cursor()
-
-
         title = request.form.get('Title')
         text = request.form.get('Text')
+        pid = request.form.get('pid')
 
-        sql = "INSERT INTO announcements (title, text, pid) VALUES (%s, %s, %s)"
+        sql = "SELECT uid FROM Projects WHERE uid = %s AND pid = %s"
+        cur.execute(sql, (uid, pid))
+        if cur.fetchone() == None:
+            flash("You can only add announcements to your projects. Redirected to all projects.", category="error")
+            return redirect(url_for("main.projects"))
+
+        sql = "INSERT INTO announcements (title, text, pid) VALUES (%s, %s, %s) RETURNING aid"
 
         try: 
             cur.execute(sql, (title, text, pid,))
+            aid = cur.fetchone()['aid']
             con.commit()
-            flash("Announcement {} successfully added!".format(title), category="message")
-            return redirect(url_for('input.addProject'))
+            flash("Announcement {} successfully added!".format(aid), category="message")
+            return redirect(url_for('main.project', pid=pid))
         except:
-            flash("Announcement {} couldn't be added. It probably already exists!".format(title), category="error")
+           flash("Announcement couldn't be added.", category="error")
 
 
-    return render_template('add-announcement.html')
+    return render_template('add-announcement.html', pid=pid)
 
 
 @input.route('/add/note/', methods = ['POST', 'GET'])
@@ -241,6 +244,7 @@ def addTag():
 
 
     return render_template('add-tag.html', pid = pid)
+
 
 
 @input.route('/add/reply/')

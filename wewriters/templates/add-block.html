@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<form action="/add/block/" method=POST>
+    <p><input class="w3-input w3-padding-16" type="text" placeholder="Block title" required name="Title"></p>
+    <input type="hidden" id="pid" name="pid" value="{{pid}}">
+    <p><textarea type="text" placeholder="Block text" required name="Text"></textarea></p>
+
+
+
+
+
+    <p>
+        <button class="w3-button w3-light-grey w3-padding-large" type="submit">
+            <i class="fa fa-paper-plane"></i> Add Block
+        </button>
+    </p>
+</form>
+
+{% endblock %}

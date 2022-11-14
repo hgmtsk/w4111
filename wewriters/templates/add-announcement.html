@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<form action="/add/announcement/" method=POST>
+    <p><input class="w3-input w3-padding-16" type="text" placeholder="Announcement title" required name="Title"></p>
+    <input type="hidden" id="pid" name="pid" value="{{pid}}">
+    <p><textarea type="text" placeholder="Announcement text" required name="Text"></textarea></p>
+
+
+
+
+
+    <p>
+        <button class="w3-button w3-light-grey w3-padding-large" type="submit">
+            <i class="fa fa-paper-plane"></i> Add Announcement
+        </button>
+    </p>
+</form>
+
+{% endblock %}

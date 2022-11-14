@@ -309,4 +309,4 @@ def projects():
     cur.execute(sql, (p,))
     res = cur.fetchall()
 
-    return render_template('projects.html', pages = pages, projects=res)
+    return render_template('projects.html', pages = pages, projects=res, title = "Projects")

@@ -10,22 +10,34 @@ main = Blueprint('main', __name__)
 @main.route('/')
 def index():
 
-    # demo functionality, change later
-    con = get_db() # gets the connection, need figure out the connection close
+    con = get_db()
+    cur = con.cursor()
 
-    sql = "SELECT pid, U.uid, pname,username, description, P.addTime FROM Projects as P, Users as U WHERE U.uid = P.uid" # query
+    perpage = 10
 
-    
-    cur = con.cursor() # get cursor for connection
+    p = request.args.get("p")
 
-    cur.execute(sql) 
+    if p != None:
+        offset = p 
 
-    project = cur.fetchall()
+    sql = "SELECT count(*) FROM projects"
+    cur.execute(sql)
 
+    res = cur.fetchone()
 
+    pcount = res['count']
+    pcount10 = int((pcount-1)/10) + 1
 
+    pages = []
 
-    return render_template('feed.html', title = 'We, Writers', messages = project)
+    for i in range(pcount10):
+        pages.append(i*10)
+
+    sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT 10 OFFSET %s"
+    cur.execute(sql, (p,))
+    res = cur.fetchall()
+
+    return render_template('feed.html', title = "We, Writers", pages = pages, projects=res,)
 
 
 @main.route('/note',  strict_slashes=False)

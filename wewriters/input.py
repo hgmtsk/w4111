@@ -57,17 +57,17 @@ def addProject():
                 if request.form.get(str(each)) == "on":
                     selected.append((each,pid))
 
-            # prepare for multiple inserts
-            args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
-                    for i in selected)
-
-            sql = "INSERT INTO projectcategories (cid, pid) VALUES "
-            cur.execute(sql + args)
+            if len(selected)!=0:
+                # prepare for multiple inserts
+                args = ','.join(cur.mogrify("(%s,%s)", i).decode('utf-8')
+                        for i in selected)
+                sql = "INSERT INTO projectcategories (cid, pid) VALUES "
+                cur.execute(sql + args)
 
             con.commit()
         except:
             flash("There was a problem when adding your project. Please try agian.", category="error")
-            return redirect(url_for("input.addProject"))      
+            return redirect(url_for("main.project", pid=pid))      
         
         
         flash('Your project {} has been added!'.format(pname), category="message")
@@ -79,32 +79,38 @@ def addProject():
 
     return render_template('add-project.html', title = "Add Project", categories = categories)
 
-@input.route('/add/block/')
+@input.route('/add/block/', methods = ['POST', 'GET'])
 @login_required
 def addBlock():
 
+    pid = request.args.get("pid")
+
+    if pid == None and request.method == 'GET':
+        flash("Cannot add a block to an unknown project. Redirected to all projects.", category="error")
+        return redirect(url_for("main.projects"))
+
+    con = get_db()
+    cur = con.cursor()
+
     if request.method == 'POST':
-
-        con = get_db()
-        cur = con.cursor()
-
-        pid=1
 
         title = request.form.get('Title')
         text = request.form.get('Text')
+        pid = request.form.get('pid')
 
         sql = "INSERT INTO blocks (title, text, pid) VALUES (%s, %s,%s)"
 
         try: 
             cur.execute(sql, (title, text, pid,))
+            bid = cur.fetchone()['bid']
             con.commit()
-            flash("Block {} successfully added!".format(title), category="message")
-            return redirect(url_for('input.project'))
+            flash("Block {} successfully added!".format(bid), category="message")
+            return redirect(url_for('main.block', bid=bid))
         except:
-            flash("Block {} couldn't be added. It probably already exists!".format(title), category="error")
+            flash("Block couldn't be added.", category="error")
 
 
-    return render_template('add-block.html')
+    return render_template('add-block.html', pid=pid)
 
 
 @input.route('/add/announcement/')

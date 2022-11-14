@@ -104,13 +104,13 @@ def addBlock():
             cur.execute(sql, (title, text, pid,))
             bid = cur.fetchone()['bid']
             con.commit()
-            flash("Block {} successfully added!".format(bid), category="message")
+            flash("Block '{}' successfully added!".format(title), category="message")
             return redirect(url_for('main.block', bid=bid))
         except:
             flash("Block couldn't be added.", category="error")
 
 
-    return render_template('add-block.html', pid=pid)
+    return render_template('add-block.html', pid=pid, title="New block for project #{}".format(pid))
 
 
 @input.route('/add/announcement/', methods = ['POST', 'GET'])
@@ -147,13 +147,13 @@ def addAnnouncement():
             cur.execute(sql, (title, text, pid,))
             aid = cur.fetchone()['aid']
             con.commit()
-            flash("Announcement {} successfully added!".format(aid), category="message")
-            return redirect(url_for('main.project', pid=pid))
+            flash("Announcement '{}' successfully added!".format(title), category="message")
+            return redirect(url_for('main.announcement', aid=aid))
         except:
            flash("Announcement couldn't be added.", category="error")
 
 
-    return render_template('add-announcement.html', pid=pid)
+    return render_template('add-announcement.html', pid=pid, title = "New announcement for project #{}".format(pid))
 
 
 @input.route('/add/note/', methods = ['POST', 'GET'])

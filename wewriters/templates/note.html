@@ -9,7 +9,14 @@ Tags: {% for tag in note['tags'] %} <div class="w3-light-grey w3-padding-tiny w3
 
 <p>
     <ul class="w3-ul w3-white">
-        <li class="w3-dark-grey w3-xlarge w3-padding-32">{{note['ntitle']}} </li>
+        <li class="w3-dark-grey w3-xlarge w3-padding-32">{{note['ntitle']}} 
+            {% if current_user.is_authenticated %}
+            <a href="/add/reply/?nid={{note['nid']}}">
+                <button class="w3-button w3-light-grey w3-padding-small" style="float:right; margin: 0px;" type="submit">
+                     <i class="fa-solid fa-reply"></i> Reply 
+                </button>
+            </a>
+            {% endif %} </li>
         <li class="w3-dark-grey w3-small w3-padding-16">Posted by {{user['uname']}} on {{note['naddtime'].strftime('%B %d, %Y at %H:%M:%S')}} </li>
         <li class="w3-padding-16">{{note['ntext']}}</li>
     </ul>

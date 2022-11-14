@@ -4,7 +4,7 @@
 <h2>Note <a href="/note/{{note['nid']}}"> #{{note['nid']}}</a> for project <a href="/project/{{project['pid']}}">#{{project['pid']}}: {{project['pname']}}</a> </h2>
 
 {% if note['tags']|length > 0 %}
-Tags: {% for tag in note['tags'] %} {{tag['tname']}} {% endfor %}
+Tags: {% for tag in note['tags'] %} <div class="w3-light-grey w3-padding-tiny w3-button">{{tag['tname']}}</div> {% endfor %}
 {% else %}No tags{% endif %} 
 
 <p>

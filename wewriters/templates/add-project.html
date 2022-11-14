@@ -8,7 +8,7 @@
 <form action="/add/project/" method=POST>
   <p><input class="w3-input w3-padding-16" type="text" placeholder="Project Name" required name="Name"></p>
 
-  <div class="buttons" style="line-height: 3"> {% for category in categories %} <input type="checkbox" id="{{category['cid']}}" name="{{category['cid']}}">
+  <div class="buttons"> {% for category in categories %} <input type="checkbox" id="{{category['cid']}}" name="{{category['cid']}}">
     <label class="w3-button w3-light-grey w3-padding-tiny" for="{{category['cid']}}">{{category['cname']}}</label>{%
     endfor %}
   </div>

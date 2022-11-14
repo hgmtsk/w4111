@@ -10,8 +10,18 @@ Categories: {% for category in categories %} <div class="w3-light-grey w3-paddin
 
 <p>
 <ul class="w3-ul w3-white">
-    <li class="w3-dark-grey w3-xlarge w3-padding-32">{{project['pname']}} </li>
-    <li class="w3-dark-grey w3-small w3-padding-16">Added by {{project['username']}} on
+    <li class="w3-dark-grey w3-xlarge w3-padding-32">{{project['pname']}}
+        {% if current_user.is_authenticated %}
+        <a href="/project/{{project['pid']}}/?follow=toggle">
+            <button class="w3-button w3-light-grey w3-padding-small" style="float:right; margin: 0px;" type="submit">
+                {% if follows %} <i class="fa-solid fa-bookmark"></i> Unfollow {% else %} <i
+                    class="fa-regular fa-bookmark"></i> Follow {% endif %}
+            </button>
+        </a>
+        {% endif %}
+    </li>
+    <li class="w3-dark-grey w3-small w3-padding-16">Added by <a href="/user/{{project['uid']}}">
+            {{project['username']}}</a> on
         {{project['paddtime'].strftime('%B %d, %Y at %H:%M:%S')}} </li>
     <li class="w3-padding-16">{{project['pdescription']}}</li>
 </ul>
@@ -22,6 +32,14 @@ Categories: {% for category in categories %} <div class="w3-light-grey w3-paddin
 <ul class="w3-ul w3-white">
 
     <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('announcements')"> Announcements ({{acount}})
+        {% if (current_user.is_authenticated) and (current_user.id|int() == project['uid']|int()) %}
+        <a href="/add/announcement/?p={{project['pid']}}">
+            <div class="w3-light-grey w3-button w3-padding-tiny" style="float:right; margin: 0px;"> <i
+                    class="fa-solid fa-bullhorn"></i> Add announcement
+            </div>
+        </a>
+        {% endif %}
+
     </li>
     <div id="announcements" style="display:none">
 
@@ -36,7 +54,14 @@ Categories: {% for category in categories %} <div class="w3-light-grey w3-paddin
 <p>
 <ul class="w3-ul w3-white">
 
-    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('blocks')"> Blocks ({{bcount}}) </li>
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('blocks')"> Blocks ({{bcount}}) 
+        {% if (current_user.is_authenticated) and (current_user.id|int() == project['uid']|int()) %}
+        <a
+            href="/add/block/?p={{project['pid']}}"><span class="w3-light-grey w3-button w3-padding-tiny"
+                style="float:right; margin: 0px;"> <i class="fa-solid fa-scroll"></i> Add block
+            </span></a> 
+        {% endif %}
+        </li>
     <div id="blocks" style="display:none">
         {% for block in blocks %}
         <li class="w3-padding-16 w3-small"><a href="/block/{{block['bid']}}">{{block['title']}}</a>
@@ -49,7 +74,11 @@ Categories: {% for category in categories %} <div class="w3-light-grey w3-paddin
 <p>
 <ul class="w3-ul w3-white">
 
-    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('notes')"> Notes ({{ncount}}) </li>
+    <li class="w3-dark-grey w3-small w3-padding-16" onclick="hideandshow('notes')"> Notes ({{ncount}}) {% if
+        current_user.is_authenticated %} <a href="/add/note/?p={{project['pid']}}"><span
+                class="w3-light-grey w3-button w3-padding-tiny" style="float:right; margin: 0px;"><i
+                    class="fa-solid fa-note-sticky"></i> Add note
+            </span></a>{% endif %} </li>
     <div id="notes" style="display:none">
         {% for note in notes %}
         <li class="w3-padding-16 w3-small"><a href="/note/{{note['nid']}}">{{note['title']}}</a> {% if

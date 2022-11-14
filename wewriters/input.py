@@ -7,23 +7,55 @@ input = Blueprint('input', __name__)
 
 @input.route('/search/project/')
 def searchProject():
+
+    offset =0
     term = request.args.get("search")
+    search = term
+
+    p = request.args.get("p")
+
+    if p != None:
+        offset = p 
+
+    con = get_db()
+    cur = con.cursor()
+
+
 
     res = []
 
     if term != None:
-        con = get_db()
-        cur = con.cursor()
 
-        sql = "SELECT * FROM Projects WHERE pname LIKE %(like)s ESCAPE '=' ORDER BY addtime LIMIT %(limit)s OFFSET %(offset)s"
+        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid WHERE pname LIKE %(like)s ESCAPE '=' GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT %(limit)s OFFSET %(offset)s"
 
         term = term.replace('=', '==').replace('%', '=%').replace('_', '=_')
 
-        cur.execute(sql, dict(like='%'+term+'%', limit=10, offset=0))
+        cur.execute(sql, dict(like='%'+term+'%', limit=10, offset=offset))
         res = cur.fetchall()
-        print(cur.query)
 
-    return render_template('search.html', res = res)
+        pcount10 = int((len(res)-1)/10) + 1
+
+        pages = []
+
+        for i in range(pcount10):
+            pages.append(i*10)
+    else:
+        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT 10 OFFSET %s"
+        cur.execute(sql, (offset,))
+
+        res = cur.fetchall()
+
+        pcount = len(res)
+        pcount10 = int((pcount-1)/10) + 1
+
+        pages = []
+
+        for i in range(pcount10):
+            pages.append(i*10)
+
+    return render_template('search-project.html', title="Project Search",  pages = pages, projects=res, search = search)
+
+
 
 @input.route('/add/project/', methods = ['POST', 'GET'])
 @login_required

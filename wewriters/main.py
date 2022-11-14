@@ -286,11 +286,27 @@ def projects():
     cur = con.cursor()
 
     perpage = 10
-    offset = 0
 
-    # this doesnt work please fix (likely need left join). aim: get all projects (pid, pname, paddtime), corresponding user (uid, username), and count for blocks, announcements, and notes for each project (limit by perpage and offset by offset)
-    sql = "SELECT P.pid AS pid, P.pname AS pname, P.addtime AS paddtime, U.uid, U.usernanme AS uname, count(N.nid) AS ncount, count(B.bid) as bcount, count(A.ais) as acount FROM projects P, users U, blocks B, announcements A, notes N WHERE P.uid = U.uid, P.pid = B.pid, P.pid = A.aid, P.pid = B.pid GROUP BY P.pid"
+    p = request.args.get("p")
 
-    pages = [0,10,20,30]
+    if p != None:
+        offset = p 
 
-    return render_template('projects.html', pages = pages)
+    sql = "SELECT count(*) FROM projects"
+    cur.execute(sql)
+
+    res = cur.fetchone()
+
+    pcount = res['count']
+    pcount10 = int((pcount-1)/10) + 1
+
+    pages = []
+
+    for i in range(pcount10):
+        pages.append(i*10)
+
+    sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT 10 OFFSET %s"
+    cur.execute(sql, (p,))
+    res = cur.fetchall()
+
+    return render_template('projects.html', pages = pages, projects=res)

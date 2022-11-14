@@ -215,6 +215,8 @@ def addNote():
 @login_required
 def addTag():
 
+    pid = request.args.get("pid") 
+
     if request.method == 'POST':
 
         con = get_db()
@@ -228,7 +230,10 @@ def addTag():
             cur.execute(sql, (tag,))
             con.commit()
             flash("Tag {} successfully added!".format(tag), category="message")
-            return redirect(url_for('input.addProject'))
+            sql = "SELECT T.name AS tname, T.tid AS tid, count(NT.nid) AS count FROM tags T LEFT JOIN notetags NT ON NT.tid = T.tid  GROUP BY T.tid ORDER BY count DESC"
+            cur.execute(sql)
+            tags = cur.fetchall()
+            return render_template('add-note.html', pid = pid, tags = tags)
         except:
             flash("Tag {} couldn't be added. It probably already exists!".format(tag), category="error")
 

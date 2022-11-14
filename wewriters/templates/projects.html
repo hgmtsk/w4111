@@ -3,6 +3,21 @@
 {% block content %}
 
 
+{% for project in projects %}
+
+<p>
+
+    <ul class="w3-ul w3-white w3-opacity w3-hover-opacity-off">
+        <li class="w3-dark-grey w3-xlarge w3-padding-32"><a href='/project/{{project['pid']}}'> #{{project['pid']}} {{project['pname']}}</a>
+            <div style="float:right">{{project['blocks_count']}}&nbsp&nbsp&nbsp&nbsp{{project['announcements_count']}}&nbsp&nbsp&nbsp&nbsp{{project['notes_count']}}&nbsp&nbsp&nbsp&nbsp{{project['follower_count']}}</div>
+        </li> 
+        <li class="w3-padding-16">Posted on {{project['paddtime'].strftime('%B %d, %Y')}}</li> 
+    </ul>
+
+</p>
+
+{% endfor %}
+
 <form action="/projects/" method=GET>
     <div class="w3-center">
     <div class="buttons">

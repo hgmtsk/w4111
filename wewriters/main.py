@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 
+from flask_login import current_user
+
 from wewriters.db import get_db
 
 main = Blueprint('main', __name__)
@@ -27,7 +29,7 @@ def index():
 
 
 @main.route('/note',  strict_slashes=False)
-@main.route('/note/<nid>')
+@main.route('/note/<nid>/')
 def note(nid=None):
     if nid == None:
         flash("No note selected, redirected to main page.", category="error")
@@ -88,7 +90,7 @@ def note(nid=None):
     return render_template('note.html', title = "Note #" + str(note['nid']) + ": "+str(note['ntitle']), hide = True, note = note, user = user, project = project, replies = replies)
 
 @main.route('/project', strict_slashes=False)
-@main.route('/project/<pid>')
+@main.route('/project/<pid>/')
 def project(pid=None):
 
     if pid == None:
@@ -98,13 +100,29 @@ def project(pid=None):
     con = get_db() # gets the connection, need figure out the connection close
     cur = con.cursor() # get cursor for connection
 
+    if request.args.get("follow") == 'toggle' and current_user.is_authenticated:
+        sql = "SELECT * FROM projectfollows WHERE pid = %s AND uid = %s"
+        cur.execute(sql,(pid,current_user.id))
+        if cur.fetchone() == None:
+            sql = "INSERT INTO projectfollows (pid, uid) VALUES (%s, %s)"
+        else:
+            sql = "DELETE FROM projectfollows WHERE pid = %s AND uid = %s"
+        cur.execute(sql, (pid,current_user.id))
+        con.commit()
 
     #try: later!!!
+
+        
+    # following
+    follows = False
+    if current_user.is_authenticated:
+        sql = "SELECT * FROM projectfollows WHERE pid = %s AND uid = %s"
+        cur.execute(sql,(pid,current_user.id))
+        if cur.fetchone() != None:
+            follows = True
+
     sql = "SELECT P.pid AS pid, U.uid AS uid, P.pname AS pname, U.username AS username, P.description AS pdescription, P.addTime AS paddtime FROM Projects as P, Users as U WHERE U.uid = P.uid AND P.pid=%s" # query
     cur.execute(sql, (pid,))
-    
-    # doesn't work!
-    
     res = cur.fetchone()
     project = {'pid': pid, 'pname': res['pname'], 'uid': res['uid'], 'username': res['username'], 'pdescription':res['pdescription'], 'paddtime': res['paddtime']}
 
@@ -141,15 +159,17 @@ def project(pid=None):
         res = cur.fetchall()
         note['tags'] = res
 
+
+
     #except Exception as e:
     #    print(e)
     #    flash("Selected project doesn't exist. Redirected to all projects.", category="error")
     #    return redirect(url_for("main.projects"))
 
-    return render_template('project.html', title = "Project #" + ": "+str(project['pname']), hide = True, project = project, categories = categories, blocks = blocks, bcount = bcount, announcements = announcements, acount = acount, notes = notes, ncount = ncount)
+    return render_template('project.html', title = "Project #"+ str(project['pid']) + ": "+str(project['pname']), hide = True, project = project, categories = categories, blocks = blocks, bcount = bcount, announcements = announcements, acount = acount, notes = notes, ncount = ncount, follows = follows)
 
 @main.route('/announcement', strict_slashes=False)    
-@main.route('/announcement/<aid>')
+@main.route('/announcement/<aid>/')
 def announcement(aid=None):
 
     if aid == None:
@@ -169,7 +189,7 @@ def announcement(aid=None):
     return render_template('announcement.html', title = "Announcement #" + str(announcement['aid']) + ": "+str(announcement['atitle']), hide = True, announcement = announcement)
     
 @main.route('/block', strict_slashes=False)
-@main.route('/block/<bid>')
+@main.route('/block/<bid>/')
 def block(bid=None):
 
     if bid == None:
@@ -189,7 +209,7 @@ def block(bid=None):
     return render_template('block.html', title = "Block #" + str(block['bid']) + ": "+str(block['btitle']), hide = True, block = block)
 
 @main.route('/user', strict_slashes=False)
-@main.route('/user/<uid>')
+@main.route('/user/<uid>/')
 def user(uid=None):
 
     if uid == None:

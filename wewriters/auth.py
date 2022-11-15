@@ -73,11 +73,13 @@ def login_post():
             flash("Registration successful. Welcome, {}!".format(res['username']), category="message")
 
             return redirect(url_for("main.index"))
+        flash("Login unsuccessful. Wrong email or password. Try again.", category="error")
     except:
 
         flash("Login unsuccessful. Wrong email or password. Try again.", category="error")
 
         return render_template("login.html", title = "Login")
+    return render_template("login.html", title = "Login")    
 
 @auth.route('/logout/')
 @login_required

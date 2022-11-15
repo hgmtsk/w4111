@@ -2,19 +2,26 @@
 
 {% block content %}
 
-
+<p>
+    <ul class="w3-ul w3-white">
+        
+         <li class="w3-padding-16 w3-xlarge" ><a href="/search/user/"> Search users </a> <div style="float:right;"><i class="fa-solid fa-scroll" title="Number of projects"></i></i> &nbsp; <i class="fa-solid fa-bullhorn" title="Number of notes"></i>&nbsp;  <i class="fa-solid fa-note-sticky" title="Number of follows"></i> &nbsp; <i class="fa-solid fa-bookmark" title="Number of followers"></i></div></li>
+    </ul>
+</p>
 {% for user in users %}
 
 <p>
 
     <ul class="w3-ul w3-white w3-opacity w3-hover-opacity-off">
-        <li class="w3-dark-grey w3-xlarge w3-padding-32"><a href='/user/{{user['uid']}}'> #{{user['uid']}} {{user['username']}}</a> Regsitred since {{user['regtime'].strftime('%B %d, %Y')}}</a> 
+        <a href='/user/{{user['uid']}}'><li class="w3-dark-grey w3-xlarge w3-padding-32"> #{{user['uid']}} {{user['username']}}
+            <div style="float:right">{{user['project_count']}}&nbsp&nbsp&nbsp&nbsp{{user['note_count']}}&nbsp&nbsp&nbsp&nbsp{{user['follow_count']}}&nbsp&nbsp&nbsp&nbsp{{user['follower_count']}}</div>
+        </li> </a>
+        <li class="w3-padding-16">Registered on {{user['regtime'].strftime('%B %d, %Y')}}</li> 
     </ul>
 
 </p>
 
 {% endfor %}
-
 
 <form action="/users/" method=GET>
     <div class="w3-center">

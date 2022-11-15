@@ -35,7 +35,7 @@ def index():
         res = cur.fetchall()
         announcements = res
 
-        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U2.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U1 JOIN projectfollows AS PF ON PF.uid=U1.uid JOIN projects AS P1 ON U1.uid=P1.uid OR PF.pid=P1.pid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid JOIN users AS U2 ON P1.uid=U2.uid WHERE U1.uid=%s GROUP BY P1.pid, U1.uid, U2.uid ORDER BY paddtime DESC LIMIT %s"
+        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U2.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF2.uid) AS follower_count FROM users AS U1 JOIN projectfollows AS PF1 ON PF1.uid=U1.uid JOIN projects AS P1 ON U1.uid=P1.uid OR PF1.pid=P1.pid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF2 ON PF2.pid=P1.pid JOIN users AS U2 ON P1.uid=U2.uid WHERE U1.uid=%s GROUP BY P1.pid, U1.uid, U2.uid ORDER BY paddtime DESC LIMIT %s"
         cur.execute(sql, (current_user.id,plimit))
         res = cur.fetchall()
         projects = res

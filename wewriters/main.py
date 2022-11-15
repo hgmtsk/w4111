@@ -130,7 +130,7 @@ def project(pid=None):
         cur.execute(sql, (pid,current_user.id))
         con.commit()
 
-    #try: later!!!
+    
 
         
     # following

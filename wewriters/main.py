@@ -13,31 +13,47 @@ def index():
     con = get_db()
     cur = con.cursor()
 
-    perpage = 10
+    alimit = 10
+    plimit = 10
+
+    announcements = None
+    projects = None
 
     p = request.args.get("p")
+    a = request.args.get("a")
 
     if p != None:
-        offset = p 
+        plimit = int(p) + 10
+    if a != None:
+        alimit = int(a) + 10
 
-    sql = "SELECT count(*) FROM projects"
-    cur.execute(sql)
 
-    res = cur.fetchone()
+    if current_user.is_authenticated:
 
-    pcount = res['count']
-    pcount10 = int((pcount-1)/10) + 1
+        sql = "SELECT A1.aid AS aid, A1.title AS title, A1.addtime AS aaddtime, U2.uid AS uid, P1.pid AS pid, P1.pname AS pname, U2.username AS username FROM announcements AS A1, projectfollows AS PF, users AS U1, projects AS P1, users AS U2 WHERE A1.pid=PF.pid AND PF.uid=U1.uid AND U1.uid=%s AND P1.pid=PF.pid AND U2.uid=P1.uid ORDER BY aaddtime DESC LIMIT %s"
+        cur.execute(sql, (current_user.id,alimit))
+        res = cur.fetchall()
+        announcements = res
 
-    pages = []
+        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U2.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U1 JOIN projectfollows AS PF ON PF.uid=U1.uid JOIN projects AS P1 ON U1.uid=P1.uid OR PF.pid=P1.pid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid JOIN users AS U2 ON P1.uid=U2.uid WHERE U1.uid=%s GROUP BY P1.pid, U1.uid, U2.uid ORDER BY paddtime DESC LIMIT %s"
+        cur.execute(sql, (current_user.id,plimit))
+        res = cur.fetchall()
+        projects = res
 
-    for i in range(pcount10):
-        pages.append(i*10)
+    else: 
+        sql = "SELECT A1.aid AS aid, A1.title AS title, A1.addtime AS aaddtime, U2.uid AS uid, P1.pid AS pid, P1.pname AS pname, U2.username AS username FROM announcements AS A1, projects AS P1, users AS U2 WHERE A1.pid = P1.pid AND U2.uid=P1.uid ORDER BY aaddtime DESC LIMIT %s"
+        cur.execute(sql, (alimit,))
+        res = cur.fetchall()
+        announcements = res
 
-    sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT 10 OFFSET %s"
-    cur.execute(sql, (p,))
-    res = cur.fetchall()
+        sql =  "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT %s"
+        cur.execute(sql, (plimit,))
+        res = cur.fetchall()
+        projects = res
 
-    return render_template('feed.html', title = "We, Writers", pages = pages, projects=res,)
+
+
+    return render_template('feed.html', title = "We, Writers", alimit = alimit, plimit = plimit, projects=projects, announcements = announcements)
 
 
 @main.route('/note',  strict_slashes=False)
@@ -218,7 +234,7 @@ def user(uid=None):
 
     if uid == None:
         flash("No user selected, redirected to all users.", category="error")
-        return redirect(url_for("users.index"))
+        return redirect(url_for("main.users"))
 
 
     con = get_db() # gets the connection, need figure out the connection close
@@ -251,14 +267,14 @@ def user(uid=None):
 @main.route('/users/')
 def users():
 
-    offset =0
+    limit = 10
     term = request.args.get("search")
     search = term
 
     p = request.args.get("p")
 
     if p != None:
-        offset = p 
+        limit = int(p) + 10
 
     con = get_db()
     cur = con.cursor()
@@ -269,80 +285,56 @@ def users():
 
     if term != None:
 
-        sql = "SELECT U.uid AS uid, U.username AS username, U.regtime AS regtime, COUNT(DISTINCT P1.pid) AS project_count, COUNT(DISTINCT N.nid) AS note_count, COUNT(PF.uid) AS follow_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U LEFT JOIN projects AS P1 ON P1.uid=U.uid LEFT JOIN notes AS N ON P1.pid=N.nid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid WHERE pname LIKE %(like)s ESCAPE '=' GROUP BY U.uid ORDER BY regtime DESC LIMIT %(limit)s OFFSET %(offset)s"
+        sql = "SELECT U.uid AS uid, U.username AS username, U.regtime AS regtime, COUNT(DISTINCT P1.pid) AS project_count, COUNT(DISTINCT N.nid) AS note_count, COUNT(PF.uid) AS follow_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U LEFT JOIN projects AS P1 ON P1.uid=U.uid LEFT JOIN notes AS N ON P1.pid=N.nid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid WHERE username LIKE %(like)s ESCAPE '=' GROUP BY U.uid ORDER BY regtime DESC LIMIT %(limit)s"
 
         term = term.replace('=', '==').replace('%', '=%').replace('_', '=_')
 
-        cur.execute(sql, dict(like='%'+term+'%', limit=10, offset=offset))
+        cur.execute(sql, dict(like='%'+term+'%', limit=limit, ))
         res = cur.fetchall()
 
-        pcount10 = int((len(res)-1)/10) + 1
-
-        pages = []
-
-        for i in range(pcount10):
-            pages.append(i*10)
     else:
-        sql = "SELECT U.uid AS uid, U.username AS username, U.regtime AS regtime, COUNT(DISTINCT P1.pid) AS project_count, COUNT(DISTINCT N.nid) AS note_count, COUNT(PF.uid) AS follow_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U LEFT JOIN projects AS P1 ON P1.uid=U.uid LEFT JOIN notes AS N ON P1.pid=N.nid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY U.uid ORDER BY regtime DESC LIMIT 10 OFFSET %s"
-        cur.execute(sql, (offset,))
+        sql = "SELECT U.uid AS uid, U.username AS username, U.regtime AS regtime, COUNT(DISTINCT P1.pid) AS project_count, COUNT(DISTINCT N.nid) AS note_count, COUNT(PF.uid) AS follow_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U LEFT JOIN projects AS P1 ON P1.uid=U.uid LEFT JOIN notes AS N ON P1.pid=N.nid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY U.uid ORDER BY regtime DESC LIMIT %s"
+        cur.execute(sql, (limit,))
 
         res = cur.fetchall()
 
-        pcount = len(res)
-        pcount10 = int((pcount-1)/10) + 1
 
-        pages = []
-
-        for i in range(pcount10):
-            pages.append(i*10)
-
-    return render_template('search-user.html', title="User Search",  pages = pages, users=res, search = search)
+    return render_template('search-user.html', title="User Search",  limit = limit, users=res, search = search)
 
 @main.route('/projects/')
 def projects():
-    offset =0
+    limit = 10
     term = request.args.get("search")
     search = term
 
     p = request.args.get("p")
 
     if p != None:
-        offset = p 
+        limit = int(p) + 10
 
     con = get_db()
     cur = con.cursor()
 
+    
 
 
     res = []
 
     if term != None:
 
-        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid WHERE pname LIKE %(like)s ESCAPE '=' GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT %(limit)s OFFSET %(offset)s"
+        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid WHERE pname LIKE %(like)s ESCAPE '=' GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT %(limit)s"
 
         term = term.replace('=', '==').replace('%', '=%').replace('_', '=_')
 
-        cur.execute(sql, dict(like='%'+term+'%', limit=10, offset=offset))
+        cur.execute(sql, dict(like='%'+term+'%', limit=limit,))
         res = cur.fetchall()
 
-        pcount10 = int((len(res)-1)/10) + 1
 
-        pages = []
-
-        for i in range(pcount10):
-            pages.append(i*10)
     else:
-        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT 10 OFFSET %s"
-        cur.execute(sql, (offset,))
+        sql = "SELECT P1.pid AS pid, P1.pname AS pname, P1.addtime AS paddtime, P1.uid AS uid, U.username AS username, COUNT(DISTINCT B.bid) AS blocks_count, COUNT(DISTINCT A1.aid) AS announcements_count, COUNT(DISTINCT N.nid) AS notes_count, COUNT(DISTINCT PF.uid) AS follower_count FROM projects AS P1 JOIN users AS U ON U.uid=P1.uid LEFT JOIN blocks AS B ON P1.pid=B.pid LEFT JOIN announcements AS A1 ON A1.pid=P1.pid LEFT JOIN notes AS N ON N.pid=P1.pid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY P1.pid, U.uid ORDER BY paddtime DESC LIMIT %s"
+        cur.execute(sql, (limit,))
 
         res = cur.fetchall()
 
-        pcount = len(res)
-        pcount10 = int((pcount-1)/10) + 1
 
-        pages = []
-
-        for i in range(pcount10):
-            pages.append(i*10)
-
-    return render_template('search-project.html', title="Project Search",  pages = pages, projects=res, search = search)
+    return render_template('search-project.html', title="Project Search",  limit = limit, projects=res, search = search)

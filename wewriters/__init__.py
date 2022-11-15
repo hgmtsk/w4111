@@ -25,6 +25,7 @@ def create_app():
 
     from .db import close_db
     app.teardown_appcontext(close_db)
+    app.teardown_request(close_db)
 
     from .user import User
     @login_manager.user_loader

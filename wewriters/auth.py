@@ -29,13 +29,13 @@ def register_post():
 
     sql = "INSERT INTO users (username, email) VALUES (%s, %s) RETURNING uid"
 
-    print(cur.execute(sql, (username, email,)))
+    cur.execute(sql, (username, email,))
 
     uid = cur.fetchone()['uid']
     
     sql = "INSERT INTO auth (uid, hpwd) VALUES (%s, %s)"
 
-    print(cur.execute(sql, (uid, generate_password_hash(password, method='sha256'),)))
+    cur.execute(sql, (uid, generate_password_hash(password, method='sha256'),))
 
     con.commit()
     

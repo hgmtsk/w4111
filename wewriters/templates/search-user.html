@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<form action=/users method=GET>
+
+  <p><input class="w3-input w3-padding-16" type="text" placeholder="Search by username" required name="search" {% if search
+      %}value="{{search}}" {% endif %}>
+
+
+  <p>
+  <ul class="w3-ul w3-padding-large w3-dark-grey">
+
+    <li class="w3-padding-16 w3-xlarge buttons">
+      <div style="float:left"><button class="w3-button w3-padding-small" type="submit">
+          <i class="fa fa-magnifying-glass"></i> Search
+        </button></div>
+      <div style="float:right;"><i class="fa-solid fa-scroll" title="Number of projects"></i></i> &nbsp; <i
+          class="fa-solid fa-bullhorn" title="Number of notes"></i>&nbsp; <i class="fa-solid fa-note-sticky"
+          title="Number of follows"></i> &nbsp; <i class="fa-solid fa-bookmark" title="Number of followers"></i></div>
+    </li>
+  </ul>
+  </p>
+
+
+  {% for user in users %}
+
+  <p>
+
+  <ul class="w3-ul w3-white w3-opacity w3-hover-opacity-off">
+    <a href='/user/{{user[' uid']}}'>
+      <li class="w3-dark-grey w3-xlarge w3-padding-32"> #{{user['uid']}} {{user['username']}}
+        <div style="float:right">
+          {{user['project_count']}}&nbsp&nbsp&nbsp&nbsp{{user['note_count']}}&nbsp&nbsp&nbsp&nbsp{{user['follow_count']}}&nbsp&nbsp&nbsp&nbsp{{user['follower_count']}}
+        </div>
+      </li>
+    </a>
+    <li class="w3-padding-16">Registered on {{user['regtime'].strftime('%B %d, %Y')}}</li>
+  </ul>
+
+  </p>
+
+  {% endfor %}
+
+
+  <div class="w3-center">
+    <div class="buttons">
+      {% for page in pages %}
+
+
+
+      <button class="w3-button w3-light-grey w3-padding-large button-width" type="submit" , name="p" , value="{{page}}">
+        {{page}}
+      </button>
+
+
+      {% endfor %}
+    </div>
+  </div>
+</form>
+
+{% endblock %}

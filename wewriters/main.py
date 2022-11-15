@@ -251,37 +251,52 @@ def user(uid=None):
 @main.route('/users/')
 def users():
 
-    con = get_db()
-    cur = con.cursor()
-
-    perpage = 10
-    offset = 0
+    offset =0
+    term = request.args.get("search")
+    search = term
 
     p = request.args.get("p")
 
     if p != None:
         offset = p 
 
-    sql = "SELECT count(*) FROM Users"
-    cur.execute(sql)
-
-    res = cur.fetchone()
-
-    ucount = res['count']
-    ucount10 = int((ucount-1)/10) + 1
-
-    pages = []
-
-    for i in range(ucount10):
-        pages.append(i*10)
-
-    sql = "SELECT * FROM Users ORDER BY regtime DESC LIMIT 10 OFFSET %s"
-    cur.execute(sql, (p,))
-    res = cur.fetchall()
+    con = get_db()
+    cur = con.cursor()
 
 
 
-    return render_template('users.html', title = 'Users', pages = pages, users = res)
+    res = []
+
+    if term != None:
+
+        sql = "SELECT U.uid AS uid, U.username AS username, U.regtime AS regtime, COUNT(DISTINCT P1.pid) AS project_count, COUNT(DISTINCT N.nid) AS note_count, COUNT(PF.uid) AS follow_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U LEFT JOIN projects AS P1 ON P1.uid=U.uid LEFT JOIN notes AS N ON P1.pid=N.nid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid WHERE pname LIKE %(like)s ESCAPE '=' GROUP BY U.uid ORDER BY regtime DESC LIMIT %(limit)s OFFSET %(offset)s"
+
+        term = term.replace('=', '==').replace('%', '=%').replace('_', '=_')
+
+        cur.execute(sql, dict(like='%'+term+'%', limit=10, offset=offset))
+        res = cur.fetchall()
+
+        pcount10 = int((len(res)-1)/10) + 1
+
+        pages = []
+
+        for i in range(pcount10):
+            pages.append(i*10)
+    else:
+        sql = "SELECT U.uid AS uid, U.username AS username, U.regtime AS regtime, COUNT(DISTINCT P1.pid) AS project_count, COUNT(DISTINCT N.nid) AS note_count, COUNT(PF.uid) AS follow_count, COUNT(DISTINCT PF.uid) AS follower_count FROM users AS U LEFT JOIN projects AS P1 ON P1.uid=U.uid LEFT JOIN notes AS N ON P1.pid=N.nid LEFT JOIN projectfollows AS PF ON PF.pid=P1.pid GROUP BY U.uid ORDER BY regtime DESC LIMIT 10 OFFSET %s"
+        cur.execute(sql, (offset,))
+
+        res = cur.fetchall()
+
+        pcount = len(res)
+        pcount10 = int((pcount-1)/10) + 1
+
+        pages = []
+
+        for i in range(pcount10):
+            pages.append(i*10)
+
+    return render_template('search-user.html', title="User Search",  pages = pages, users=res, search = search)
 
 @main.route('/projects/')
 def projects():

@@ -20,26 +20,27 @@ def register_post():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    print(email,username,password)
+    try:
 
-    # TODO: error check (rando + user exists)
+        con = get_db()
+        cur = con.cursor()
 
-    con = get_db()
-    cur = con.cursor()
+        sql = "INSERT INTO users (username, email) VALUES (%s, %s) RETURNING uid"
 
-    sql = "INSERT INTO users (username, email) VALUES (%s, %s) RETURNING uid"
+        cur.execute(sql, (username, email,))
 
-    cur.execute(sql, (username, email,))
+        uid = cur.fetchone()['uid']
+        
+        sql = "INSERT INTO auth (uid, hpwd) VALUES (%s, %s)"
 
-    uid = cur.fetchone()['uid']
-    
-    sql = "INSERT INTO auth (uid, hpwd) VALUES (%s, %s)"
+        cur.execute(sql, (uid, generate_password_hash(password, method='sha256'),))
 
-    cur.execute(sql, (uid, generate_password_hash(password, method='sha256'),))
-
-    con.commit()
-    
-    login_user(User(str(uid)))
+        con.commit()
+        
+        login_user(User(str(uid)))
+    except:
+        flash("Registration failed. Try a different username or email.", category="error")
+        return redirect(url_for("auth.register"))
 
     flash("Registration successful. Welcome, {}!".format(username), category="message")
 
@@ -56,25 +57,27 @@ def login_post():
     email = request.form.get('email')
     password = request.form.get('password')
 
-    con = get_db()
-    cur = con.cursor()
+    try:
+        con = get_db()
+        cur = con.cursor()
 
-    sql = "SELECT U.uid AS uid, U.username AS username, A.hpwd AS hpwd FROM Users AS U, Auth AS A WHERE U.email = %s AND U.uid = A.uid"
+        sql = "SELECT U.uid AS uid, U.username AS username, A.hpwd AS hpwd FROM Users AS U, Auth AS A WHERE U.email = %s AND U.uid = A.uid"
 
-    cur.execute(sql,(email,))
-    res = cur.fetchone()
+        cur.execute(sql,(email,))
+        res = cur.fetchone()
 
-    if check_password_hash(res['hpwd'], password):
+        if check_password_hash(res['hpwd'], password):
 
-        login_user(User(str(res['uid'])))
+            login_user(User(str(res['uid'])))
 
-        flash("Registration successful. Welcome, {}!".format(res['username']), category="message")
+            flash("Registration successful. Welcome, {}!".format(res['username']), category="message")
 
-        return redirect(url_for("main.index"))
+            return redirect(url_for("main.index"))
+    except:
 
-    flash("Login unsuccessful. Wrong email or password. Try again.", category="error")
+        flash("Login unsuccessful. Wrong email or password. Try again.", category="error")
 
-    return render_template("login.html", title = "Login")
+        return render_template("login.html", title = "Login")
 
 @auth.route('/logout/')
 @login_required
